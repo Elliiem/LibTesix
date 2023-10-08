@@ -1,0 +1,23 @@
+#pragma once
+#include "Window.h"
+
+#include <termios.h>
+
+static const int STDIN = 0;
+
+namespace LibTesix {
+
+class Screen {
+  public:
+    Screen();
+    ~Screen();
+
+    std::vector<Window> windows;
+
+    Style state;
+
+  private:
+    termios old_attr, new_attr;
+};
+
+} // namespace LibTesix
