@@ -42,7 +42,7 @@ void Dev() {
     Style state;
     state.BG(Color(50, 50, 50));
 
-    string.Erase(1, 5);
+    string.Erase(4, 10);
 
     string.UpdateRaw();
     printf(string.Raw(&state).c_str());

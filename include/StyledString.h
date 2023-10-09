@@ -54,6 +54,7 @@ struct StyledString {
 
   private:
     void UpdateSegmentStart();
+    void BoundsCheck(uint32_t index, std::string message);
     uint32_t GetSegmentIndex(uint32_t index);
     std::pair<uint32_t, uint32_t> Split(uint32_t index);
 };

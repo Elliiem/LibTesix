@@ -55,9 +55,8 @@ void StyledString::Insert(std::string str, Style style, uint32_t index) {
 
 std::string StyledString::Write(std::string str, Style style, uint32_t index) {
     uint32_t len = Len();
-    if(index >= len)
-        throw std::runtime_error(
-            "Index " + std::to_string(index) + " is out of bounds! << StyledString::Write()");
+    BoundsCheck(
+        index, "Index " + std::to_string(index) + " is out of bounds! << StyledString::Write()");
 
     uint32_t start = Split(index).second;
     uint32_t end = Split(index + str.length()).first;
@@ -88,37 +87,44 @@ void StyledString::Append(std::string str, Style style) {
 }
 
 void StyledString::Erase(uint32_t start, uint32_t end) {
-    if(start > Len())
-        throw std::runtime_error("Index of start " + std::to_string(start) +
-                                 " is out of bounds! << StyledString::Erase()");
-    if(end > Len())
-        throw std::runtime_error(
-            "Index of end " + std::to_string(end) + " is out of bounds! << StyledString::Erase()");
+    BoundsCheck(start - 1,
+        "Index of start " + std::to_string(start) + " is out of bounds! << StyledString::Erase()");
+    BoundsCheck(end - 1,
+        "Index of end " + std::to_string(end) + " is out of bounds! << StyledString::Erase()");
 
     uint32_t start_segment_index = GetSegmentIndex(start);
     uint32_t end_segment_index = GetSegmentIndex(end);
 
-    StyledSegment cur = string[start_segment_index];
+    StyledSegment* cur = &string[start_segment_index];
 
     if(start_segment_index == end_segment_index) {
-        uint32_t erase_start = start - cur.start;
-        uint32_t erase_len = end - cur.start - erase_start;
-        cur.str.erase(erase_start, erase_len);
-    } else {
-        cur.Split(start - cur.start);
+        uint32_t erase_start = start - cur->start;
+        uint32_t erase_len = end - cur->start - erase_start;
 
-        if(cur.str == "") {
+        cur->str.erase(erase_start, erase_len);
+    } else {
+        cur->Split(start - cur->start);
+
+        if(cur->str == "") {
             string.erase(string.begin() + start_segment_index);
             end_segment_index--;
+        } else {
+            start_segment_index++;
         }
 
         for(uint32_t i = start_segment_index; i < end_segment_index; i++) {
-            string.erase(string.begin() + i);
+            string.erase(string.begin() + start_segment_index);
         }
 
-        cur = string[start_segment_index];
+        cur = &string[start_segment_index];
 
-        string[start_segment_index] = cur.Split(end - cur.start);
+        cur->str.erase(0, end - cur->start);
+
+        if(cur->str == "") {
+            if(string.size() > 1) {
+                string.erase(string.begin() + start_segment_index);
+            }
+        }
 
         UpdateSegmentStart();
     }
@@ -151,13 +157,32 @@ void StyledString::UpdateSegmentStart() {
     string[i].start = next_start;
 }
 
+void StyledString::BoundsCheck(uint32_t index, std::string message) {
+    if(index >= Len()) {
+        throw std::runtime_error(message);
+    }
+}
+
 uint32_t StyledString::GetSegmentIndex(uint32_t index) {
-    uint32_t i = 1;
-    while(index > string[i].start && i != string.size()) {
-        i++;
+    uint32_t segment_index = 0;
+
+    if(index >= string[string.size() - 1].start) {
+        return string.size() - 1;
     }
 
-    return i - 1;
+    for(uint32_t i = 0; i < string.size() - 1; i++) {
+        if(index < string[i + 1].start) {
+            segment_index = i;
+
+            if(string[i + 1].start == string[i].start) {
+                continue;
+            } else {
+                break;
+            }
+        }
+    }
+
+    return segment_index;
 }
 
 std::pair<uint32_t, uint32_t> StyledString::Split(uint32_t index) {
