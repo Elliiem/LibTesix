@@ -13,6 +13,7 @@ struct StyledString {
   private:
     struct StyledSegment {
         StyledSegment(std::string str, Style style, uint32_t start = 0);
+        StyledSegment();
         std::string str;
         Style style;
         uint32_t start;
@@ -32,6 +33,8 @@ struct StyledString {
     void Erase(uint32_t start, uint32_t end);
     std::string Write(std::string str, Style style, uint32_t index);
 
+    StyledString Substr(uint32_t start, uint32_t end);
+
     uint32_t Len();
 
     void Resize(uint32_t size);
@@ -45,18 +48,17 @@ struct StyledString {
     Style StyleStart();
     Style StyleEnd();
 
-    StyledString Substr(uint32_t start, uint32_t end);
+    void Print(Style* state);
 
   private:
     std::vector<StyledSegment> string;
 
-    std::string raw_string;
+    std::string raw;
 
   private:
-    void UpdateSegmentStart();
+    void UpdateSegmentStart(uint32_t i = 0);
     void BoundsCheck(uint32_t index, std::string message);
     uint32_t GetSegmentIndex(uint32_t index);
-    std::pair<uint32_t, uint32_t> Split(uint32_t index);
 };
 
 } // namespace LibTesix

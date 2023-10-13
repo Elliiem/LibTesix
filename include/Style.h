@@ -34,6 +34,7 @@ const ColorPair STANDARD_COLORPAIR(STANDARD_FG, STANDARD_BG);
 
 struct Style {
     Style();
+    Style(ColorPair col);
 
     // Setters for modifiers
     Style* Bold(bool val);
@@ -52,9 +53,11 @@ struct Style {
     // Returns the escape code sequence used in order to change from the supplied teminal state to this style
     std::string GetEscapeCode(Style* state);
 
-  private:
-    // States of modifiers eg. bold, italic or blinking text
-    // these modifiers are stored in this vector at the values in the enum States, defined in the Style source file
+    void Reset();
+
+    // private:
+    //  States of modifiers eg. bold, italic or blinking text
+    //  these modifiers are stored in this vector at the values in the enum States, defined in the Style source file
     std::vector<bool> bool_state;
 
     // The color of the Style
@@ -62,5 +65,6 @@ struct Style {
 };
 
 const Style STANDARD_STYLE;
+const Style NULL_STYLE(ColorPair(Color(-1, -1, -1), Color(-1, -1, -1)));
 
 } // namespace LibTesix

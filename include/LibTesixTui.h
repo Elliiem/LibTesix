@@ -3,52 +3,67 @@
 #include "Style.h"
 #include "StyledString.h"
 
+#include <chrono>
 #include <cinttypes>
 #include <iostream>
 #include <string>
+#include <thread>
 #include <unistd.h>
 #include <vector>
 
 namespace LibTesix {
 
 void Dev() {
-    /*Screen src;
+    Screen src;
 
     Window win(10, 10, 10, 5);
+
+    Style background;
+    background.BG(Color(0, 0, 50));
+
     Style foo;
-    foo.Blinking(1)->BG(Color(50, 50, 50))->Italic(1);
-    win.Print(0, 0, "aaaaaaaaa", foo);
-    win.Print(0, 1, "bbbbbbbbb", foo);
-    win.Print(0, 2, "ccccccccc", foo);
-    win.Print(0, 3, "ddddddddd", foo);
-    win.Print(0, 4, "eeeeeeeee", foo);
+    foo.Blinking(0)->BG(Color(50, 50, 50))->Italic(1);
 
-    win.Draw(&src.state, 1);
-    printf("\n");
+    win.Print(0, 0, "#################################################", foo);
 
-    sleep(4);
-    printf("\033[0m");*/
+    printf("%s", background.GetEscapeCode(&src.state).c_str());
+    src.state = background;
+    printf("\033[2J");
 
-    StyledString string("");
-    string.Append("1111", STANDARD_STYLE);
-    Style foo;
-    foo.BG(Color(255, 0, 0));
-    string.Append("2222", foo);
-    foo.BG(Color(0, 255, 0));
-    string.Append("3333", foo);
-    foo.BG(Color(0, 0, 255));
-    string.Append("4444", foo);
+    struct Vel {
+        uint32_t x;
+        uint32_t y;
+    };
 
-    Style state;
-    state.BG(Color(50, 50, 50));
+    Vel vel;
+    vel.x = 2;
+    vel.y = 1;
+    while(true) {
+        win.Draw(&src.state, 1);
+        printf("\033[0;0f\n");
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-    string.Erase(4, 10);
+        if(win.x >= GetTerminalWidth() - win.width) {
+            vel.x = -vel.x;
+        } else if(win.x <= 0) {
+            vel.x = -vel.x;
+        }
 
-    string.UpdateRaw();
-    printf(string.Raw(&state).c_str());
-    string.StyleEnd().SetState(&state);
+        if(win.y >= GetTerminalHeight() - win.height) {
+            vel.y = -vel.y;
+        } else if(win.y <= 0) {
+            vel.y = -vel.y;
+        }
 
-    printf("\033[0m");
+        win.x += vel.x;
+        win.y += vel.y;
+
+        printf("%s", background.GetEscapeCode(&src.state).c_str());
+        src.state = background;
+        printf("\033[2J");
+    }
+
+    printf("\033[0m\033[2J\n\033[0;0f");
 }
 
 } // namespace LibTesix

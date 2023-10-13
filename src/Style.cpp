@@ -57,6 +57,11 @@ Style::Style() {
     bool_state.resize(STATE_COUNT, false);
 }
 
+Style::Style(ColorPair col) {
+    this->col = col;
+    bool_state.resize(STATE_COUNT, false);
+}
+
 Style* Style::Bold(bool val) {
     if(bool_state[FAINT] && val) bool_state[FAINT] = false;
     bool_state[BOLD] = val;
@@ -137,6 +142,11 @@ std::string Style::GetEscapeCode(Style* state) {
     }
 
     return ret;
+}
+
+void Style::Reset() {
+    col = STANDARD_COLORPAIR;
+    bool_state = STANDARD_STYLE.bool_state;
 }
 
 } // namespace LibTesix
