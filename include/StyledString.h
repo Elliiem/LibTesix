@@ -4,9 +4,16 @@
 
 #include <cinttypes>
 #include <string>
+#include <unicode/ubrk.h>
+#include <unicode/unistr.h>
+#include <unicode/ustream.h>
+#include <unicode/utext.h>
+#include <unicode/utypes.h>
 #include <vector>
 
 namespace LibTesix {
+
+uint32_t StringLenght(std::string& str);
 
 struct StyledString {
   public:
@@ -14,7 +21,10 @@ struct StyledString {
     struct StyledSegment {
         StyledSegment(std::string str, Style style, uint32_t start = 0);
         StyledSegment();
+        ~StyledSegment();
         std::string str;
+        icu::UnicodeString str_uc;
+
         Style style;
         uint32_t start;
 
@@ -49,11 +59,15 @@ struct StyledString {
     Style StyleEnd();
 
     void Print(Style* state);
+    void PrintDebug();
+
+    void Dev();
 
   private:
     std::vector<StyledSegment> string;
 
     std::string raw;
+    icu::UnicodeString raw_str;
 
   private:
     void UpdateSegmentStart(uint32_t i = 0);

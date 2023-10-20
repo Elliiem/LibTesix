@@ -14,7 +14,7 @@
 namespace LibTesix {
 
 void Dev() {
-    Screen src;
+    /*Screen src;
 
     Window win(10, 10, 10, 5);
 
@@ -24,7 +24,7 @@ void Dev() {
     Style foo;
     foo.Blinking(0)->BG(Color(50, 50, 50))->Italic(1);
 
-    win.Print(0, 0, "#################################################", foo);
+    win.Print(0, 0, "############################################┛┛┛┛┛┛", foo);
 
     printf("%s", background.GetEscapeCode(&src.state).c_str());
     src.state = background;
@@ -63,7 +63,10 @@ void Dev() {
         printf("\033[2J");
     }
 
-    printf("\033[0m\033[2J\n\033[0;0f");
+    printf("\033[0m\033[2J\n\033[0;0f");*/
+
+    StyledString foo("Susybaka!");
+    foo.Dev();
 }
 
 } // namespace LibTesix

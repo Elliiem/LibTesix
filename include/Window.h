@@ -28,10 +28,15 @@ class Window {
     std::string raw;
 
     void Print(uint32_t x, uint32_t y, std::string str, Style style);
-    void Update(Style* state);
+    void UpdateRaw();
 
     void Draw(Style* state, bool should_update);
 
+  private:
+    Style raw_start_style;
+    Style raw_end_style;
+
+  private:
     interval GetXVisible();
     interval GetYVisible();
 };

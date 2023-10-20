@@ -32,7 +32,7 @@ void Window::Print(uint32_t x, uint32_t y, std::string str, Style style) {
     }
 }
 
-void Window::Update(Style* state) {
+void Window::UpdateRaw() {
     if(lines.size() == 0) {
         raw = "";
         return;
@@ -43,14 +43,13 @@ void Window::Update(Style* state) {
     interval x_visible = GetXVisible();
     interval y_visible = GetYVisible();
 
-    // printf("%i, %i, %i, %i", x_visible.first, x_visible.second, y_visible.first, y_visible.second);
-
     if((x_visible.first == 0 && x_visible.second == 0) || (y_visible.first == 0 && y_visible.second == 0)) {
         raw = "";
         return;
     }
 
-    new_raw.append(lines[y_visible.first].StyleStart().GetEscapeCode(state));
+    Style state = lines[y_visible.first].StyleStart();
+    raw_start_style = state;
 
     uint32_t clipped_x;
     clipped_x = x * !(x < 0);
@@ -59,21 +58,23 @@ void Window::Update(Style* state) {
         new_raw.append("\033[" + std::to_string(y + i + 1) + ";" + std::to_string(clipped_x + 1) + "f");
         lines[i].UpdateRaw();
         StyledString visible = lines[i].Substr(x_visible.first, x_visible.second);
-        new_raw.append(visible.Raw(state));
-        *state = visible.StyleEnd();
+        new_raw.append(visible.Raw(&state));
+        state = visible.StyleEnd();
     }
 
+    raw_end_style = state;
     raw = new_raw;
 }
 
 void Window::Draw(Style* state, bool should_update) {
     if(should_update) {
-        Update(state);
+        UpdateRaw();
     }
 
+    printf(raw_start_style.GetEscapeCode(state).c_str());
     printf(raw.c_str());
 
-    *state = lines[lines.size() - 1].StyleEnd();
+    *state = raw_end_style;
 }
 
 Window::interval Window::GetXVisible() {

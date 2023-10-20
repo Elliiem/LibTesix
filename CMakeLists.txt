@@ -21,6 +21,9 @@ foreach(VAL ${INCLUDES})
     message(STATUS ${VAL})
 endforeach()
 
+find_package(fmt REQUIRED)
+find_package(ICU 72.1 COMPONENTS uc i18n REQUIRED)
+
 add_library(${PROJ} STATIC
     ${SOURCES}
     ${INCLUDES}
@@ -28,4 +31,10 @@ add_library(${PROJ} STATIC
 
 target_include_directories(${PROJ} PUBLIC
     ./include
+)
+
+target_link_libraries(${PROJ} PRIVATE
+    fmt
+    ICU::uc
+    ICU::i18n
 )

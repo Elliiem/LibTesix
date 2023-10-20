@@ -5,20 +5,51 @@
 
 namespace LibTesix {
 
+uint32_t StringLenght(std::string& str) {
+    UErrorCode status = U_ZERO_ERROR;
+    UText* text = utext_openUTF8(nullptr, str.data(), str.length(), &status);
+
+    UBreakIterator* iterator = ubrk_open(UBRK_CHARACTER, "en_us", nullptr, 0, &status);
+    ubrk_setUText(iterator, text, &status);
+
+    uint32_t count = 0;
+    while(ubrk_next(iterator) != UBRK_DONE) {
+        count++;
+    }
+
+    ubrk_close(iterator);
+    utext_close(text);
+
+    return count;
+}
+
+void checkStatus(const UErrorCode& status) {
+    if(U_FAILURE(status)) {
+        throw std::runtime_error(u_errorName(status));
+    }
+}
+
 StyledString::StyledSegment::StyledSegment(std::string str, Style style, uint32_t start) {
     this->str = str;
+    str_uc = icu::UnicodeString(str.c_str());
+
     this->style = style;
     this->start = start;
 }
 
 StyledString::StyledSegment::StyledSegment() {
     str = "";
+    str_uc = icu::UnicodeString("");
+
     style = STANDARD_STYLE;
     start = 0;
 }
 
+StyledString::StyledSegment::~StyledSegment() {
+}
+
 StyledString::StyledSegment StyledString::StyledSegment::Split(uint32_t index) {
-    if(!(index < str.length())) return *this;
+    if(!(index < StringLenght(str))) return *this;
     StyledSegment new_segment = StyledSegment(str.substr(index), style, start + index);
 
     str = str.substr(0, index);
@@ -61,16 +92,16 @@ std::string StyledString::Write(std::string str, Style style, uint32_t index) {
     BoundsCheck(index + 1, "Index " + std::to_string(index) + " is out of bounds! << StyledString::Write()");
 
     std::string ret;
-    int32_t over = str.length() + index - Len();
+    int32_t over = StringLenght(str) + index - Len();
     if(over > 0) {
-        ret = str.substr(str.length() - over);
-        str.resize(str.length() - over);
+        ret = str.substr(StringLenght(str) - over);
+        str.resize(StringLenght(str) - over);
     }
 
-    Erase(index, index + str.length());
+    Erase(index, index + StringLenght(str));
 
     uint32_t start_segment_index = GetSegmentIndex(index);
-    StyledSegment seg(str, style, string[start_segment_index].start + string[start_segment_index].str.length());
+    StyledSegment seg(str, style, string[start_segment_index].start + StringLenght(string[start_segment_index].str));
 
     if(string.size() > 1) {
         string.insert(string.begin() + start_segment_index + 1, seg);
@@ -181,7 +212,7 @@ void StyledString::UpdateSegmentStart(uint32_t i) {
 
     while(i < string.size()) {
         string[i].start = next_start;
-        next_start += string[i].str.length();
+        next_start += StringLenght(string[i].str);
         i++;
     }
 }
@@ -216,7 +247,7 @@ uint32_t StyledString::GetSegmentIndex(uint32_t index) {
 
 uint32_t StyledString::Len() {
     StyledSegment& last = string.back();
-    return last.start + last.str.length() + 1;
+    return last.start + StringLenght(last.str) + 1;
 }
 
 void StyledString::Resize(uint32_t size) {
@@ -250,6 +281,24 @@ Style StyledString::StyleEnd() {
 void StyledString::Print(Style* state) {
     printf(Raw(state).c_str());
     StyleEnd().SetState(state);
+}
+
+void StyledString::PrintDebug() {
+    for(StyledSegment seg : string) {
+        printf("%s, %i |", seg.str.c_str(), seg.start);
+    }
+    printf("\n");
+}
+
+void StyledString::Dev() {
+    icu::UnicodeString foo("0123456789");
+
+    icu::UnicodeString foo_substr(foo, 0, 5);
+
+    std::string foo_sub_str;
+    foo_substr.toUTF8String(foo_sub_str);
+
+    printf(foo_sub_str.c_str());
 }
 
 StyledString StyledString::Substr(uint32_t start, uint32_t end) {
