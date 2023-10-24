@@ -30,7 +30,7 @@ class Window {
     void Print(uint32_t x, uint32_t y, std::string str, Style style);
     void UpdateRaw();
 
-    void Draw(Style* state, bool should_update);
+    void Draw(Style& state, bool should_update);
 
   private:
     Style raw_start_style;

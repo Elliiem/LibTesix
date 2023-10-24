@@ -14,9 +14,9 @@ Window::Window(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
     this->width = width;
     this->height = height;
 
-    std::string fill;
-    fill.resize(width - 1, ' ');
-    lines.resize(height, StyledString(fill));
+    std::string fill(width - 1, ' ');
+    icu::UnicodeString styled_str(fill.c_str());
+    lines.resize(height, StyledString(styled_str));
 }
 
 void Window::Print(uint32_t x, uint32_t y, std::string str, Style style) {
@@ -58,7 +58,7 @@ void Window::UpdateRaw() {
         new_raw.append("\033[" + std::to_string(y + i + 1) + ";" + std::to_string(clipped_x + 1) + "f");
         lines[i].UpdateRaw();
         StyledString visible = lines[i].Substr(x_visible.first, x_visible.second);
-        new_raw.append(visible.Raw(&state));
+        new_raw.append(visible.Raw(state));
         state = visible.StyleEnd();
     }
 
@@ -66,7 +66,7 @@ void Window::UpdateRaw() {
     raw = new_raw;
 }
 
-void Window::Draw(Style* state, bool should_update) {
+void Window::Draw(Style& state, bool should_update) {
     if(should_update) {
         UpdateRaw();
     }
@@ -74,7 +74,7 @@ void Window::Draw(Style* state, bool should_update) {
     printf(raw_start_style.GetEscapeCode(state).c_str());
     printf(raw.c_str());
 
-    *state = raw_end_style;
+    state = raw_end_style;
 }
 
 Window::interval Window::GetXVisible() {

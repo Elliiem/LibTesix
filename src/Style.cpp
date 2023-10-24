@@ -109,17 +109,17 @@ Style* Style::Color(ColorPair val) {
     return this;
 }
 
-void Style::SetState(Style* state) {
-    state->bool_state = bool_state;
-    state->col = col;
+void Style::SetState(Style& state) {
+    state.bool_state = bool_state;
+    state.col = col;
 }
 
-std::string Style::GetEscapeCode(Style* state) {
+std::string Style::GetEscapeCode(Style& state) {
     std::vector<std::pair<uint32_t, bool>> bool_changes(STATE_COUNT);
     uint32_t change_count = 0;
 
     for(uint32_t i = 0; i < STATE_COUNT; i++) {
-        if(bool_state[i] != state->bool_state[i]) {
+        if(bool_state[i] != state.bool_state[i]) {
             bool_changes[change_count] = std::pair<uint32_t, bool>(i, bool_state[i]);
             change_count++;
         }
@@ -133,11 +133,11 @@ std::string Style::GetEscapeCode(Style* state) {
         ret.append(ESCAPE_CODES[2 * change.first + change.second]);
     }
 
-    if(!(col.fg == state->col.fg)) {
+    if(!(col.fg == state.col.fg)) {
         ret.append("\033[38;2;" + std::to_string(col.fg.r) + ";" + std::to_string(col.fg.g) + ";" + std::to_string(col.fg.b) + "m");
     }
 
-    if(!(col.bg == state->col.bg)) {
+    if(!(col.bg == state.col.bg)) {
         ret.append("\033[48;2;" + std::to_string(col.bg.r) + ";" + std::to_string(col.bg.g) + ";" + std::to_string(col.bg.b) + "m");
     }
 
