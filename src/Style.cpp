@@ -109,11 +109,6 @@ Style* Style::Color(ColorPair val) {
     return this;
 }
 
-void Style::SetState(Style& state) {
-    state.bool_state = bool_state;
-    state.col = col;
-}
-
 std::string Style::GetEscapeCode(Style& state) {
     std::vector<std::pair<uint32_t, bool>> bool_changes(STATE_COUNT);
     uint32_t change_count = 0;

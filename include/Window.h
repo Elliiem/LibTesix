@@ -2,7 +2,7 @@
 
 #include "StyledString.h"
 
-#include <fstream>
+#include <unicode/unistr.h>
 #include <vector>
 
 namespace LibTesix {
@@ -27,10 +27,10 @@ class Window {
 
     std::string raw;
 
-    void Print(uint32_t x, uint32_t y, std::string str, Style style);
+    void Print(uint32_t x, uint32_t y, icu::UnicodeString& str, Style style);
     void UpdateRaw();
 
-    void Draw(Style& state, bool should_update);
+    void Draw(Style& state, bool should_update = true);
 
   private:
     Style raw_start_style;

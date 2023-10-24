@@ -47,9 +47,6 @@ struct Style {
     Style* FG(Color val);
     Style* Color(ColorPair val);
 
-    // Sets the provided state to this style
-    void SetState(Style& state);
-
     // Returns the escape code sequence used in order to change from the supplied teminal state to this style
     std::string GetEscapeCode(Style& state);
 

@@ -48,29 +48,27 @@ StyledString::StyledString(std::vector<StyledSegment> string) {
     UpdateRaw();
 }
 
-// TODO Finsish Testing
-void StyledString::Insert(std::string str, Style style, uint32_t index) {
+void StyledString::Insert(icu::UnicodeString& str, Style style, uint32_t index) {
     uint32_t start_segment_index = GetSegmentIndex(index);
     StyledSegment seg = string[start_segment_index].Split(index - string[start_segment_index].start);
 
     string.insert(string.begin() + start_segment_index + 1, seg);
 
-    string.insert(string.begin() + start_segment_index + 1, StyledSegment(icu::UnicodeString(str.c_str()), style, index));
+    string.insert(string.begin() + start_segment_index + 1, StyledSegment(icu::UnicodeString(str), style, index));
 
     UpdateSegmentStart(start_segment_index + 1);
 }
 
-// TODO Finish Testing
-std::string StyledString::Write(std::string str, Style style, uint32_t index) {
+icu::UnicodeString StyledString::Write(icu::UnicodeString& str, Style style, uint32_t index) {
     BoundsCheck(index + 1, "Index " + std::to_string(index) + " is out of bounds! << StyledString::Write()");
 
-    icu::UnicodeString uc_str(str.c_str());
     icu::UnicodeString overflow_str;
+    icu::UnicodeString uc_str(str);
 
-    int32_t over = uc_str.length() + index - Len();
+    int32_t over = str.length() + index - Len();
 
     if(over > 0) {
-        uc_str.extractBetween(uc_str.length() - over, uc_str.length(), overflow_str);
+        str.extractBetween(str.length() - over, str.length(), overflow_str);
         uc_str.truncate(uc_str.length() - over);
     }
 
@@ -78,7 +76,7 @@ std::string StyledString::Write(std::string str, Style style, uint32_t index) {
 
     uint32_t start_segment_index = GetSegmentIndex(index);
 
-    StyledSegment seg(icu::UnicodeString(uc_str), style, string[start_segment_index].start + string[start_segment_index].str.length());
+    StyledSegment seg(uc_str, style, string[start_segment_index].start + string[start_segment_index].str.length());
 
     if(string.size() > 1) {
         string.insert(string.begin() + start_segment_index, seg);
@@ -88,21 +86,17 @@ std::string StyledString::Write(std::string str, Style style, uint32_t index) {
 
     UpdateSegmentStart(start_segment_index);
 
-    std::string ret;
-    overflow_str.toUTF8String(ret);
-
-    return ret;
+    return overflow_str;
 }
 
-void StyledString::Append(std::string str, Style style) {
+void StyledString::Append(icu::UnicodeString& str, Style style) {
     if(string.size() == 1 && string[0].str == "") {
-        string[0] = StyledSegment(icu::UnicodeString(str.c_str()), style, Len());
+        string[0] = StyledSegment(icu::UnicodeString(str), style, Len());
     } else {
-        string.push_back(StyledSegment(icu::UnicodeString(str.c_str()), style, Len()));
+        string.push_back(StyledSegment(icu::UnicodeString(str), style, Len()));
     }
 }
 
-// TODO Finish Testing
 void StyledString::Erase(uint32_t start, uint32_t end) {
     BoundsCheck(start, "Index of start " + std::to_string(start) + " is out of bounds! << StyledString::Erase()");
     BoundsCheck(end, "Index of end " + std::to_string(end) + " is out of bounds! << StyledString::Erase()");
@@ -152,7 +146,6 @@ void StyledString::Clear(Style style) {
     string[0] = StyledSegment("", style, 0);
 }
 
-// TODO Finish Testing
 void StyledString::ClearStyle(Style style) {
     icu::UnicodeString seg_str;
 
@@ -164,7 +157,6 @@ void StyledString::ClearStyle(Style style) {
     string.push_back(StyledSegment(seg_str, style, 0));
 }
 
-// TODO Finish Testing
 void StyledString::UpdateRaw() {
     std::string new_raw("");
 
@@ -185,7 +177,6 @@ void StyledString::UpdateRaw() {
     raw = new_raw;
 }
 
-// TODO Finish Testing
 void StyledString::UpdateSegmentStart(uint32_t i) {
     uint32_t next_start;
 
@@ -234,13 +225,11 @@ uint32_t StyledString::GetSegmentIndex(uint32_t index) {
     return segment_index;
 }
 
-// TODO Finish Testing
 uint32_t StyledString::Len() {
     StyledSegment& last = string.back();
     return last.start + last.str.length();
 }
 
-// TODO Finish Testing
 void StyledString::Resize(uint32_t size) {
     if(size < Len()) {
         uint32_t start_segment_index = GetSegmentIndex(size);
@@ -248,7 +237,6 @@ void StyledString::Resize(uint32_t size) {
         uint32_t len = string.size();
         for(uint32_t i = start_segment_index + 1; i < len; i++) {
             string.erase(string.begin() + start_segment_index + 1);
-            PrintDebug();
         }
 
         string[start_segment_index].Split(size - string[start_segment_index].start);
@@ -258,7 +246,8 @@ void StyledString::Resize(uint32_t size) {
     }
 }
 
-std::string& StyledString::Raw(Style& state) {
+const std::string& StyledString::Raw(Style& state, bool should_update) {
+    if(should_update) UpdateRaw();
     raw = string[0].style.GetEscapeCode(state) + raw;
     return raw;
 }
@@ -271,35 +260,11 @@ Style StyledString::StyleEnd() {
     return string.back().style;
 }
 
-void StyledString::Print(Style& state) {
-    printf(Raw(state).c_str());
-    StyleEnd().SetState(state);
+void StyledString::Print(Style& state, bool should_update) {
+    printf(Raw(state, should_update).c_str());
+    state = StyleEnd();
 }
 
-void StyledString::PrintDebug() {
-    std::string uc_str;
-    for(StyledSegment seg : string) {
-        uc_str.clear();
-        seg.str.toUTF8String(uc_str);
-        printf("%s, %i | ", uc_str.c_str(), seg.start);
-    }
-    printf("\n");
-}
-
-void StyledString::Dev() {
-    Style state;
-
-    Style foo;
-    foo.BG(Color(255, 0, 0));
-    Write("┥┥┥┥┥┥┥", foo, 0);
-
-    UpdateRaw();
-    Print(state);
-
-    printf("\033[0m\n");
-}
-
-// TODO Finish testing
 StyledString StyledString::Substr(uint32_t start, uint32_t end) {
     if(end < start) std::swap(end, start);
 

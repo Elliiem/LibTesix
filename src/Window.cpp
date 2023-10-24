@@ -19,15 +19,17 @@ Window::Window(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
     lines.resize(height, StyledString(styled_str));
 }
 
-void Window::Print(uint32_t x, uint32_t y, std::string str, Style style) {
+void Window::Print(uint32_t x, uint32_t y, icu::UnicodeString& str, Style style) {
     if(x >= width) throw std::runtime_error("x:" + std::to_string(x) + "is out of bounds! << Window::Print()");
     else if(y >= height)
         throw std::runtime_error("y:" + std::to_string(y) + "is out of bounds! << Window::Print()");
 
-    str = lines[y].Write(str, style, x);
+    icu::UnicodeString overflow;
+
+    overflow = lines[y].Write(str, style, x);
     y++;
-    while(str != "" && y < height) {
-        str = lines[y].Write(str, style, 0);
+    while(!overflow.isEmpty() && y < height) {
+        overflow = lines[y].Write(overflow, style, 0);
         y++;
     }
 }
@@ -58,7 +60,7 @@ void Window::UpdateRaw() {
         new_raw.append("\033[" + std::to_string(y + i + 1) + ";" + std::to_string(clipped_x + 1) + "f");
         lines[i].UpdateRaw();
         StyledString visible = lines[i].Substr(x_visible.first, x_visible.second);
-        new_raw.append(visible.Raw(state));
+        new_raw.append(visible.Raw(state, 0));
         state = visible.StyleEnd();
     }
 

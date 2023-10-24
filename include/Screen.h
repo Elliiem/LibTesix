@@ -16,6 +16,9 @@ class Screen {
 
     Style state;
 
+    void Clear(Style style);
+    void Update();
+
   private:
     termios old_attr, new_attr;
 };
