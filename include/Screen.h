@@ -7,6 +7,8 @@ static const int STDIN = 0;
 
 namespace LibTesix {
 
+void Interupt_Handler(int signal);
+
 class Screen {
   public:
     Screen();

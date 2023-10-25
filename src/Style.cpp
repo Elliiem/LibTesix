@@ -5,9 +5,7 @@
 namespace LibTesix {
 
 // The indicies of modifiers in LibTesix::Style::bool_state
-//  !! WHEN CHANGING DONT FORGET TO UPDATE STATE_COUNT !!
-enum States { BOLD, FAINT, ITALIC, UNDERLINED, BLINKING, REVERSE };
-const uint32_t STATE_COUNT = 6;
+enum States { BOLD, FAINT, ITALIC, UNDERLINED, BLINKING, REVERSE, STATES_COUNT };
 
 // This stores the escape codes to achieve the modifiers enumerated in States found above
 // each value has two corresponding escape codes the first one is to turn that modifier off the second one to turn it on
@@ -54,12 +52,12 @@ ColorPair::ColorPair() {
 }
 
 Style::Style() {
-    bool_state.resize(STATE_COUNT, false);
+    bool_state.resize(STATES_COUNT, false);
 }
 
 Style::Style(ColorPair col) {
     this->col = col;
-    bool_state.resize(STATE_COUNT, false);
+    bool_state.resize(STATES_COUNT, false);
 }
 
 Style* Style::Bold(bool val) {
@@ -110,10 +108,10 @@ Style* Style::Color(ColorPair val) {
 }
 
 std::string Style::GetEscapeCode(Style& state) {
-    std::vector<std::pair<uint32_t, bool>> bool_changes(STATE_COUNT);
+    std::vector<std::pair<uint32_t, bool>> bool_changes(STATES_COUNT);
     uint32_t change_count = 0;
 
-    for(uint32_t i = 0; i < STATE_COUNT; i++) {
+    for(uint32_t i = 0; i < STATES_COUNT; i++) {
         if(bool_state[i] != state.bool_state[i]) {
             bool_changes[change_count] = std::pair<uint32_t, bool>(i, bool_state[i]);
             change_count++;

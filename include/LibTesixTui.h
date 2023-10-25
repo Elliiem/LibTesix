@@ -17,8 +17,8 @@ void Dev() {
 
     Window win(10, 10, 10, 5);
 
-    icu::UnicodeString win_text("");
-    win.Print(0, 0, win_text, foo);
+    icu::UnicodeString win_text("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW");
+    win.Write(0, 0, win_text, foo);
 
     Style background;
     background.BG(Color(0, 0, 50));
@@ -34,16 +34,15 @@ void Dev() {
 
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
 
-        if(win.x >= GetTerminalWidth() - win.width || win.x <= 0) {
+        if(win.GetX() >= GetTerminalWidth() - win.GetWidth() || win.GetX() <= 0) {
             x_vel = -x_vel;
         }
 
-        if(win.y >= GetTerminalHeight() - win.height || win.y <= 0) {
+        if(win.GetY() >= GetTerminalHeight() - win.GetHeight() || win.GetY() <= 0) {
             y_vel = -y_vel;
         }
 
-        win.x += x_vel;
-        win.y += y_vel;
+        win.Move(win.GetX() + x_vel, win.GetY() + y_vel);
 
         scr.Clear(background);
     }

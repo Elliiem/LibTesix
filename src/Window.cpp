@@ -1,8 +1,6 @@
 #include "Window.h"
 
-#include <fstream>
 #include <iostream>
-#include <stdio.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 
@@ -14,12 +12,11 @@ Window::Window(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
     this->width = width;
     this->height = height;
 
-    std::string fill(width - 1, ' ');
-    icu::UnicodeString styled_str(fill.c_str());
+    icu::UnicodeString styled_str(std::string(width, ' ').c_str());
     lines.resize(height, StyledString(styled_str));
 }
 
-void Window::Print(uint32_t x, uint32_t y, icu::UnicodeString& str, Style style) {
+void Window::Write(uint32_t x, uint32_t y, icu::UnicodeString& str, Style style) {
     if(x >= width) throw std::runtime_error("x:" + std::to_string(x) + "is out of bounds! << Window::Print()");
     else if(y >= height)
         throw std::runtime_error("y:" + std::to_string(y) + "is out of bounds! << Window::Print()");
@@ -54,7 +51,7 @@ void Window::UpdateRaw() {
     raw_start_style = state;
 
     uint32_t clipped_x;
-    clipped_x = x * !(x < 0);
+    clipped_x = x * x >= 0;
 
     for(uint32_t i = y_visible.first; i <= y_visible.second; i++) {
         new_raw.append("\033[" + std::to_string(y + i + 1) + ";" + std::to_string(clipped_x + 1) + "f");
@@ -77,6 +74,41 @@ void Window::Draw(Style& state, bool should_update) {
     printf(raw.c_str());
 
     state = raw_end_style;
+}
+
+uint32_t Window::GetHeight() {
+    return height;
+}
+
+uint32_t Window::GetWidth() {
+    return width;
+}
+
+int32_t Window::GetX() {
+    return x;
+}
+
+int32_t Window::GetY() {
+    return y;
+}
+
+void Window::Move(int32_t x, int32_t y) {
+    this->x = x;
+    this->y = y;
+    UpdateRaw();
+}
+
+void Window::Resize(int32_t width, int32_t height) {
+    lines.resize(height);
+
+    Style state;
+
+    for(StyledString& str : lines) {
+        str.Resize(width);
+    }
+
+    this->width = width;
+    this->height = height;
 }
 
 Window::interval Window::GetXVisible() {

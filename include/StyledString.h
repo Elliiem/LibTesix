@@ -26,6 +26,7 @@ struct StyledString {
   public:
     StyledString(icu::UnicodeString base_string, Style style = STANDARD_STYLE);
     StyledString(std::vector<StyledSegment> string);
+    StyledString();
 
   public:
   public:

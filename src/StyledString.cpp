@@ -48,6 +48,10 @@ StyledString::StyledString(std::vector<StyledSegment> string) {
     UpdateRaw();
 }
 
+StyledString::StyledString() {
+    string.push_back(StyledSegment());
+}
+
 void StyledString::Insert(icu::UnicodeString& str, Style style, uint32_t index) {
     uint32_t start_segment_index = GetSegmentIndex(index);
     StyledSegment seg = string[start_segment_index].Split(index - string[start_segment_index].start);
