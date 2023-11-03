@@ -37,7 +37,7 @@ Color::Color() {
     b = 0;
 }
 
-bool Color::operator==(Color& other) {
+bool Color::operator==(const Color& other) {
     return (r == other.r) && (g == other.g) && (b == other.b);
 }
 
@@ -107,7 +107,7 @@ Style* Style::Color(ColorPair val) {
     return this;
 }
 
-std::string Style::GetEscapeCode(Style& state) {
+std::string Style::GetEscapeCode(const Style& state) {
     std::vector<std::pair<uint32_t, bool>> bool_changes(STATES_COUNT);
     uint32_t change_count = 0;
 

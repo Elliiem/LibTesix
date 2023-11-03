@@ -10,7 +10,7 @@ struct Color {
     Color(uint32_t r, uint32_t g, uint32_t b);
     Color();
 
-    bool operator==(Color& other);
+    bool operator==(const Color& other);
 
     uint32_t r;
     uint32_t g;
@@ -48,7 +48,7 @@ struct Style {
     Style* Color(ColorPair val);
 
     // Returns the escape code sequence used in order to change from the supplied teminal state to this style
-    std::string GetEscapeCode(Style& state);
+    std::string GetEscapeCode(const Style& state);
 
     void Reset();
 

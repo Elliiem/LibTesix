@@ -17,9 +17,9 @@ Window::Window(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
 }
 
 void Window::Write(uint32_t x, uint32_t y, icu::UnicodeString& str, Style style) {
-    if(x >= width) throw std::runtime_error("x:" + std::to_string(x) + "is out of bounds! << Window::Print()");
+    if(x >= width) throw std::runtime_error("x: " + std::to_string(x) + " is out of bounds! << Window::Print()");
     else if(y >= height)
-        throw std::runtime_error("y:" + std::to_string(y) + "is out of bounds! << Window::Print()");
+        throw std::runtime_error("y: " + std::to_string(y) + " is out of bounds! << Window::Print()");
 
     icu::UnicodeString overflow;
 
@@ -29,6 +29,12 @@ void Window::Write(uint32_t x, uint32_t y, icu::UnicodeString& str, Style style)
         overflow = lines[y].Write(overflow, style, 0);
         y++;
     }
+}
+
+void Window::Write(uint32_t x, uint32_t y, const char* str, Style style) {
+    icu::UnicodeString uc_str(str);
+
+    Write(x, y, uc_str, style);
 }
 
 void Window::UpdateRaw() {
@@ -51,7 +57,7 @@ void Window::UpdateRaw() {
     raw_start_style = state;
 
     uint32_t clipped_x;
-    clipped_x = x * x >= 0;
+    clipped_x = x * (x > 0);
 
     for(uint32_t i = y_visible.first; i <= y_visible.second; i++) {
         new_raw.append("\033[" + std::to_string(y + i + 1) + ";" + std::to_string(clipped_x + 1) + "f");
@@ -109,6 +115,8 @@ void Window::Resize(int32_t width, int32_t height) {
 
     this->width = width;
     this->height = height;
+
+    int x = 0;
 }
 
 Window::interval Window::GetXVisible() {
@@ -181,16 +189,22 @@ uint32_t GetTerminalWidth() {
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
+#ifdef TTY_SIZE_OVERRIDE
     return 211;
+#else
     return w.ws_col;
+#endif
 }
 
 uint32_t GetTerminalHeight() {
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
+#ifdef TTY_SIZE_OVERRIDE
     return 49;
+#else
     return w.ws_row;
+#endif
 }
 
 } // namespace LibTesix
