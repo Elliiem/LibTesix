@@ -1,5 +1,7 @@
 #include "StyledString.h"
 
+#include "SegmentArray.h"
+
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
@@ -26,9 +28,7 @@ StyledSegment::StyledSegment() {
 }
 
 StyledSegment StyledSegment::Split(uint32_t index) {
-    if(index > str.length()) {
-        return *this;
-    }
+    if(index > str.length()) throw std::runtime_error("Index " + std::to_string(index) + " is out of bounds! << StyledSegment::Split()");
 
     icu::UnicodeString substr(str, index);
 

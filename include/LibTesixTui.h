@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Overlay.h"
 #include "Screen.h"
 #include "SegmentArray.h"
@@ -49,13 +50,14 @@ void Dev() {
 
     StyledSegmentArray foo;
 
-    foo.segments.push_back(StyledSegment("foo", STANDARD_STYLE, 0));
+    foo.segments.push_back(StyledSegment("foo", STANDARD_STYLE, 1));
 
     foo.segments.push_back(StyledSegment("foo", STANDARD_STYLE, 10));
 
     foo.PrintDebug();
 
-    foo.Insert("xxx", STANDARD_STYLE, 4);
+    foo.Write("xxx", STANDARD_STYLE, 1);
+    foo.Write("amogert!", STANDARD_STYLE, 3);
 
     foo.PrintDebug();
 }
