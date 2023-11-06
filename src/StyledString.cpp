@@ -39,15 +39,14 @@ StyledSegment StyledSegment::Split(uint32_t index) {
     return new_seg;
 }
 
-StyledSegmentArray::StyledSegmentArray(const std::vector<StyledSegment>& string) {
+SSA::SSA(const std::vector<StyledSegment>& string) {
     this->string = std::vector<StyledSegment>(string);
 }
 
-StyledSegmentArray::StyledSegmentArray() {
+SSA::SSA() {
 }
 
-uint32_t StyledSegmentArray::GetSegmentIndex(uint32_t index) {
-    // 4
+uint32_t SSA::GetSegmentIndex(uint32_t index) {
     uint32_t segment_index = 0;
 
     if(string.size() == 0) {
@@ -82,12 +81,12 @@ StyledString::StyledString(const char* base_string, Style style) {
     segments.string.push_back(StyledSegment(base_string, style));
 }
 
-StyledString::StyledString(const StyledSegmentArray& segments) {
+StyledString::StyledString(const SSA& segments) {
     if(segments.string.size() == 0) {
         this->segments.string.clear();
         this->segments.string.push_back(StyledSegment());
     } else {
-        this->segments = StyledSegmentArray(segments);
+        this->segments = SSA(segments);
     }
 
     UpdateRaw();

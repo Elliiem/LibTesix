@@ -21,9 +21,9 @@ struct StyledSegment {
     StyledSegment Split(uint32_t index);
 };
 
-struct StyledSegmentArray {
-    StyledSegmentArray(const std::vector<StyledSegment>& string);
-    StyledSegmentArray();
+struct SSA {
+    SSA(const std::vector<StyledSegment>& string);
+    SSA();
 
     std::vector<StyledSegment> string;
 
@@ -35,7 +35,7 @@ struct StyledString {
     StyledString(const icu::UnicodeString& base_string, Style style = STANDARD_STYLE);
     StyledString(const char* base_string, Style style = STANDARD_STYLE);
 
-    StyledString(const StyledSegmentArray& string);
+    StyledString(const SSA& string);
     StyledString(const std::vector<StyledSegment>& string);
 
     StyledString();
@@ -68,7 +68,7 @@ struct StyledString {
     void Print(Style& state, bool should_update = true);
 
   private:
-    StyledSegmentArray segments;
+    SSA segments;
 
     std::string raw;
 

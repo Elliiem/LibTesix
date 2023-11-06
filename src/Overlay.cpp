@@ -11,7 +11,7 @@ Overlay::Overlay(uint32_t width, uint32_t height) {
 }
 
 void Overlay::PrintDebug() {
-    for(StyledSegmentArray line : lines) {
+    for(SSA line : lines) {
         for(StyledSegment seg : line.string) {
             std::string utf8;
             seg.str.toUTF8String(utf8);

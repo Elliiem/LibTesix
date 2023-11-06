@@ -1,6 +1,7 @@
 #pragma once
 #include "Overlay.h"
 #include "Screen.h"
+#include "SegmentArray.h"
 #include "Style.h"
 #include "StyledString.h"
 
@@ -46,32 +47,17 @@ void Dev() {
         scr.Clear(background);
     }*/
 
-    Overlay foo(10, 5);
-    foo.lines[0].string.push_back(StyledSegment("bar", STANDARD_STYLE, 1));
-    foo.lines[0].string.push_back(StyledSegment("bar", STANDARD_STYLE, 10));
+    StyledSegmentArray foo;
 
-    icu::UnicodeString tst("bar");
+    foo.segments.push_back(StyledSegment("foo", STANDARD_STYLE, 0));
 
-    StyledString test_line;
-    test_line.Resize(13);
-    test_line.Write(tst, STANDARD_STYLE, 1);
-    test_line.Write(tst, STANDARD_STYLE, 10);
+    foo.segments.push_back(StyledSegment("foo", STANDARD_STYLE, 10));
 
-    // foo.PrintDebug();
+    foo.PrintDebug();
 
-    uint32_t x = 0;
-    uint32_t len = 4;
+    foo.Insert("xxx", STANDARD_STYLE, 4);
 
-    printf("%i\n", foo.HitsSegment(x, 0, len));
-
-    Style colored;
-    colored.BG(Color(255, 0, 0));
-    test_line.Write(std::string(len, ' ').c_str(), colored, x);
-
-    Style state = NULL_STYLE;
-    printf("\n");
-    test_line.Print(state);
-    printf("|\033[0m\n");
+    foo.PrintDebug();
 }
 
 } // namespace LibTesix

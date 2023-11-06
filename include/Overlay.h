@@ -8,7 +8,7 @@ struct Overlay {
   public:
     Overlay(uint32_t width, uint32_t height);
 
-    std::vector<StyledSegmentArray> lines;
+    std::vector<SSA> lines;
 
     uint32_t width;
 
