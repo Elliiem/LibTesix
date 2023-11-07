@@ -13,9 +13,13 @@ Window::Window(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
     this->height = height;
 
     StyledString fill;
-    fill.Resize(10);
+    fill.Resize(width);
 
     lines.resize(height, fill);
+
+    for(StyledString str : lines) {
+        str.PrintDebug();
+    }
 }
 
 void Window::Write(uint32_t x, uint32_t y, icu::UnicodeString& str, Style style) {
@@ -50,7 +54,7 @@ void Window::UpdateRaw() {
     range x_visible = GetXVisible();
     range y_visible = GetYVisible();
 
-    if((x_visible.first == 0 && x_visible.second == 0) || (y_visible.first == 0 && y_visible.second == 0)) {
+    if((x_visible.first == -1 && x_visible.second == -1) || (y_visible.first == -1 && y_visible.second == -1)) {
         raw = "";
         return;
     }
@@ -64,8 +68,9 @@ void Window::UpdateRaw() {
     for(uint32_t i = y_visible.first; i <= y_visible.second; i++) {
         new_raw.append("\033[" + std::to_string(y + i + 1) + ";" + std::to_string(clipped_x + 1) + "f");
 
-        StyledString visible = lines[i].Substr(x_visible.first, x_visible.second + 1);
+        StyledString visible = lines[i].Substr(x_visible.first, x_visible.second);
         if(overlay_enabled) ApplyOverlayToVisibleSubstr(i, x_visible.first, visible);
+        visible.PrintDebug();
 
         new_raw.append(visible.Raw(state, 0));
         state = visible.StyleEnd();
@@ -139,7 +144,7 @@ void Window::RemoveOverlay() {
 const Window::range Window::GetXVisible() {
     uint32_t term_width = GetTerminalWidth();
 
-    range ret(0, 0);
+    range ret(-1, -1);
 
     if(x < 0) {
         if(x + (int32_t)width <= 0) {
@@ -149,7 +154,7 @@ const Window::range Window::GetXVisible() {
         ret.first = abs(x);
 
         if(x + width > term_width) {
-            ret.second = width - (x + width - term_width);
+            ret.second = width - (x + width - term_width) - 1;
         } else {
             ret.second = width - 1;
         }
@@ -160,9 +165,11 @@ const Window::range Window::GetXVisible() {
             return ret;
         }
 
-        ret.second = width - (x + width - term_width);
+        ret.first = 0;
+        ret.second = width - (x + width - term_width) - 1;
         return ret;
     } else {
+        ret.first = 0;
         ret.second = width - 1;
 
         return ret;
@@ -172,7 +179,7 @@ const Window::range Window::GetXVisible() {
 const Window::range Window::GetYVisible() {
     uint32_t term_height = GetTerminalHeight();
 
-    range ret(0, 0);
+    range ret(-1, -1);
 
     if(y <= 0) {
         if(y + (int32_t)height <= 0) {
@@ -182,7 +189,7 @@ const Window::range Window::GetYVisible() {
         ret.first = abs(y);
 
         if(y + height > term_height) {
-            ret.second = height - (y + height - term_height);
+            ret.second = height - (y + height - term_height) - 1;
         } else {
             ret.second = height - 1;
         }
@@ -193,9 +200,11 @@ const Window::range Window::GetYVisible() {
             return ret;
         }
 
-        ret.second = height - (y + height - term_height);
+        ret.first = 0;
+        ret.second = height - (y + height - term_height) - 1;
         return ret;
     } else {
+        ret.first = 0;
         ret.second = height - 1;
 
         return ret;
@@ -204,7 +213,7 @@ const Window::range Window::GetYVisible() {
 
 void Window::ApplyOverlayToVisibleSubstr(uint32_t line, uint32_t visible_start, StyledString& visible) {
     for(StyledSegment seg : overlay.lines[line].segments) {
-        if(seg.start > visible_start + visible.Len()) {
+        if(seg.start >= visible_start + visible.Len()) {
             break;
         }
 

@@ -107,9 +107,8 @@ StyledString StyledString::Substr(uint32_t start, uint32_t end) {
     if(start_segment_index == end_segment_index) {
         icu::UnicodeString segment_substr;
         uint32_t segment_start = segments[start_segment_index].start;
-        uint32_t segment_len = segments[start_segment_index].Len();
 
-        segments[start_segment_index].str.extractBetween(start - segment_start, end - segment_start, segment_substr);
+        segments[start_segment_index].str.extractBetween(start - segment_start, end - segment_start + 1, segment_substr);
         substr_segments.push_back(StyledSegment(segment_substr, segments[start_segment_index].style, 0));
     } else {
         icu::UnicodeString segment_substr;
@@ -130,11 +129,10 @@ StyledString StyledString::Substr(uint32_t start, uint32_t end) {
 
         // get substring of the end segment
         // ...and add that to substr_segments
-        uint32_t end_segment_len = segments[end_segment_index].Len();
         uint32_t end_segment_start = segments[end_segment_index].start;
         uint32_t substr_len = substr_segments.back().start + substr_segments.back().Len();
 
-        segments[end_segment_index].str.extractBetween(0, end - end_segment_start, segment_substr);
+        segments[end_segment_index].str.extractBetween(0, end - end_segment_start + 1, segment_substr);
         substr_segments.push_back(StyledSegment(segment_substr, segments[end_segment_index].style, substr_len));
     }
 

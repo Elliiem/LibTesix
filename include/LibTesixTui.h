@@ -20,13 +20,15 @@ void Dev() {
 
     Window win(10, 10, 10, 5);
 
-    win.Write(0, 0, "##################################################", foo);
+    win.Write(0, 0, "01234567890123456789012345678901234567890123456789", foo);
 
     Overlay overlay(10, 10);
 
     overlay.Box(0, 0, 10, 5);
 
     win.ApplyOverlay(overlay);
+
+    win.UpdateRaw();
 
     Style background;
     background.BG(Color(0, 0, 50));
@@ -36,11 +38,11 @@ void Dev() {
     int32_t y_vel = 1;
 
     while(true) {
-        win.Draw(scr.state);
+        win.Draw(scr.state, 0);
 
         scr.Update();
 
-        if(win.GetX() >= GetTerminalWidth() - win.GetWidth() || win.GetX() <= 0) {
+        if(win.GetX() + 1 >= GetTerminalWidth() - win.GetWidth() || win.GetX() <= 0) {
             x_vel = -x_vel;
         }
 
@@ -50,7 +52,7 @@ void Dev() {
 
         win.Move(win.GetX() + x_vel, win.GetY() + y_vel);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(30));
         scr.Clear(background);
     }
 }
