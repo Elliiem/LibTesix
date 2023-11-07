@@ -13,14 +13,14 @@
 namespace LibTesix {
 
 void Dev() {
-    /*Screen scr;
+    Screen scr;
 
     Style foo;
     foo.Blinking(false)->BG(Color(50, 50, 50))->Bold(true);
 
     Window win(10, 10, 10, 5);
 
-    win.Write(0, 0, "#################################################", foo);
+    win.Write(0, 0, "#################################################A", foo);
 
     Style background;
     background.BG(Color(0, 0, 50));
@@ -46,20 +46,7 @@ void Dev() {
 
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
         scr.Clear(background);
-    }*/
-
-    StyledSegmentArray foo;
-
-    foo.segments.push_back(StyledSegment("foo", STANDARD_STYLE, 1));
-
-    foo.segments.push_back(StyledSegment("foo", STANDARD_STYLE, 10));
-
-    foo.PrintDebug();
-
-    foo.Write("xxx", STANDARD_STYLE, 1);
-    foo.Write("amogert!", STANDARD_STYLE, 3);
-
-    foo.PrintDebug();
+    }
 }
 
 } // namespace LibTesix

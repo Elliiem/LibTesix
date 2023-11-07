@@ -20,9 +20,6 @@ class Screen {
 
     void Clear(Style style);
     void Update();
-
-  private:
-    termios old_attr, new_attr;
 };
 
 } // namespace LibTesix
