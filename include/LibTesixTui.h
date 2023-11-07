@@ -20,7 +20,13 @@ void Dev() {
 
     Window win(10, 10, 10, 5);
 
-    win.Write(0, 0, "#################################################A", foo);
+    win.Write(0, 0, "##################################################", foo);
+
+    Overlay overlay(10, 10);
+
+    overlay.Box(0, 0, 10, 5);
+
+    win.ApplyOverlay(overlay);
 
     Style background;
     background.BG(Color(0, 0, 50));
@@ -44,7 +50,7 @@ void Dev() {
 
         win.Move(win.GetX() + x_vel, win.GetY() + y_vel);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(16));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         scr.Clear(background);
     }
 }

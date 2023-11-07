@@ -12,8 +12,10 @@ Window::Window(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
     this->width = width;
     this->height = height;
 
-    icu::UnicodeString styled_str(std::string(width, ' ').c_str());
-    lines.resize(height, StyledString(styled_str));
+    StyledString fill;
+    fill.Resize(10);
+
+    lines.resize(height, fill);
 }
 
 void Window::Write(uint32_t x, uint32_t y, icu::UnicodeString& str, Style style) {
@@ -45,8 +47,8 @@ void Window::UpdateRaw() {
 
     std::string new_raw;
 
-    interval x_visible = GetXVisible();
-    interval y_visible = GetYVisible();
+    range x_visible = GetXVisible();
+    range y_visible = GetYVisible();
 
     if((x_visible.first == 0 && x_visible.second == 0) || (y_visible.first == 0 && y_visible.second == 0)) {
         raw = "";
@@ -61,8 +63,10 @@ void Window::UpdateRaw() {
 
     for(uint32_t i = y_visible.first; i <= y_visible.second; i++) {
         new_raw.append("\033[" + std::to_string(y + i + 1) + ";" + std::to_string(clipped_x + 1) + "f");
-        lines[i].UpdateRaw();
-        StyledString visible = lines[i].Substr(x_visible.first, x_visible.second);
+
+        StyledString visible = lines[i].Substr(x_visible.first, x_visible.second + 1);
+        if(overlay_enabled) ApplyOverlayToVisibleSubstr(i, x_visible.first, visible);
+
         new_raw.append(visible.Raw(state, 0));
         state = visible.StyleEnd();
     }
@@ -119,10 +123,23 @@ void Window::Resize(int32_t width, int32_t height) {
     int x = 0;
 }
 
-Window::interval Window::GetXVisible() {
+void Window::ApplyOverlay(Overlay& overlay) {
+    this->overlay = Overlay(overlay);
+    overlay_enabled = true;
+}
+
+void Window::ApplyOverlay() {
+    overlay_enabled = true;
+}
+
+void Window::RemoveOverlay() {
+    overlay_enabled = false;
+}
+
+const Window::range Window::GetXVisible() {
     uint32_t term_width = GetTerminalWidth();
 
-    interval ret(0, 0);
+    range ret(0, 0);
 
     if(x < 0) {
         if(x + (int32_t)width <= 0) {
@@ -152,10 +169,10 @@ Window::interval Window::GetXVisible() {
     }
 }
 
-Window::interval Window::GetYVisible() {
+const Window::range Window::GetYVisible() {
     uint32_t term_height = GetTerminalHeight();
 
-    interval ret(0, 0);
+    range ret(0, 0);
 
     if(y <= 0) {
         if(y + (int32_t)height <= 0) {
@@ -183,6 +200,23 @@ Window::interval Window::GetYVisible() {
 
         return ret;
     }
+}
+
+void Window::ApplyOverlayToVisibleSubstr(uint32_t line, uint32_t visible_start, StyledString& visible) {
+    for(StyledSegment seg : overlay.lines[line].segments) {
+        if(seg.start > visible_start + visible.Len()) {
+            break;
+        }
+
+        if(seg.start < visible_start && seg.start + seg.Len() > visible_start) {
+            icu::UnicodeString segment_substr(seg.str, visible_start, seg.Len() - visible_start);
+            visible.Write(segment_substr, seg.style, visible_start);
+        } else if(seg.start >= visible_start) {
+            visible.Write(seg.str, seg.style, seg.start);
+        }
+    }
+
+    visible.UpdateRaw();
 }
 
 uint32_t GetTerminalWidth() {

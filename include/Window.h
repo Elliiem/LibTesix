@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Overlay.h"
 #include "StyledString.h"
 
 #include <unicode/unistr.h>
@@ -16,7 +17,7 @@ uint32_t GetTerminalHeight();
 class Window {
   public:
   private:
-    typedef std::pair<uint32_t, uint32_t> interval;
+    typedef std::pair<uint32_t, uint32_t> range;
 
   public:
     Window(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
@@ -36,8 +37,15 @@ class Window {
     void Move(int32_t x, int32_t y);
     void Resize(int32_t width, int32_t height);
 
+    void ApplyOverlay(Overlay& overlay);
+    void ApplyOverlay();
+    void RemoveOverlay();
+
   private:
     std::vector<StyledString> lines;
+
+    Overlay overlay;
+    bool overlay_enabled;
 
     std::string raw;
     Style raw_start_style;
@@ -51,8 +59,10 @@ class Window {
     uint32_t height;
 
   private:
-    interval GetXVisible();
-    interval GetYVisible();
+    const range GetXVisible();
+    const range GetYVisible();
+
+    void ApplyOverlayToVisibleSubstr(uint32_t line, uint32_t visible_start, StyledString& visible);
 };
 
 } // namespace LibTesix

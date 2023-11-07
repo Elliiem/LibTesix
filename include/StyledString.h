@@ -10,7 +10,7 @@
 
 namespace LibTesix {
 
-struct StyledString : StyledSegmentArray {
+struct StyledString : private StyledSegmentArray {
   public:
     StyledString(const icu::UnicodeString& base_string, Style style = STANDARD_STYLE);
     StyledString(const char* base_string, Style style = STANDARD_STYLE);
@@ -34,17 +34,21 @@ struct StyledString : StyledSegmentArray {
 
     void Resize(uint32_t size);
 
+    using StyledSegmentArray::Len;
+
     void Clear(Style style = STANDARD_STYLE);
     void ClearStyle(Style style = STANDARD_STYLE);
 
     void UpdateRaw();
-    const std::string Raw(const Style& state, bool should_update = true);
+    std::string Raw(const Style& state, bool should_update = true);
 
-    Style StyleStart();
-    Style StyleEnd();
+    const Style StyleStart();
+    const Style StyleEnd();
 
     void Print(Style& state, bool should_update = true);
+    using StyledSegmentArray::PrintDebug;
 
+  private:
     std::string raw;
 
     void UpdateSegmentStart(uint32_t i = 0);

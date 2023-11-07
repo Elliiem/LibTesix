@@ -21,12 +21,13 @@ struct StyledSegment {
 };
 
 struct StyledSegmentArray {
+  public:
     StyledSegmentArray();
 
+  public:
     std::vector<StyledSegment> segments;
 
-    bool InSegment(uint32_t segment_index, uint32_t index);
-
+  public:
     void Append(const icu::UnicodeString& str, Style style);
     void Append(const char* str, Style style);
 
@@ -37,11 +38,17 @@ struct StyledSegmentArray {
 
     void Clear();
 
-    void InsertSegment(StyledSegment segment, uint32_t index);
-    void PrintDebug();
-    uint32_t Len();
+    const uint32_t Len();
+
+    const void PrintDebug();
+
+  protected:
     uint32_t GetSegmentIndex(uint32_t index);
+    void InsertSegment(StyledSegment segment, uint32_t index);
+
+  private:
+    const bool InSegment(uint32_t segment_index, uint32_t index);
     bool Clean(uint32_t index);
-    bool HitsSegment(uint32_t start, uint32_t end);
+    const bool HitsSegment(uint32_t start, uint32_t end);
 };
 } // namespace LibTesix

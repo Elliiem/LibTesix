@@ -42,7 +42,7 @@ uint32_t StyledSegment::Len() {
 StyledSegmentArray::StyledSegmentArray() {
 }
 
-bool StyledSegmentArray::InSegment(uint32_t segment_index, uint32_t index) {
+const bool StyledSegmentArray::InSegment(uint32_t segment_index, uint32_t index) {
     return (index < segments[segment_index].start + segments[segment_index].Len()) && (index >= segments[segment_index].start);
 }
 
@@ -65,6 +65,10 @@ void StyledSegmentArray::Add(const icu::UnicodeString& str, Style style, uint32_
     if(str.length() == 0) return;
 
     StyledSegment new_segment(str, style, index);
+
+    if(segments.size() == 0) {
+        InsertSegment(StyledSegment(str, style, index), 0);
+    }
 
     if(Len() == 0) segments[0] = new_segment;
 
@@ -158,7 +162,7 @@ void StyledSegmentArray::InsertSegment(StyledSegment segment, uint32_t index) {
     }
 }
 
-void StyledSegmentArray::PrintDebug() {
+const void StyledSegmentArray::PrintDebug() {
     printf("|");
     for(StyledSegment seg : segments) {
         std::string utf8;
@@ -168,7 +172,7 @@ void StyledSegmentArray::PrintDebug() {
     printf("%i|\n", Len());
 }
 
-uint32_t StyledSegmentArray::Len() {
+const uint32_t StyledSegmentArray::Len() {
     if(segments.size() == 0) {
         return 0;
     } else {
@@ -211,7 +215,7 @@ bool StyledSegmentArray::Clean(uint32_t segment_index) {
     return false;
 }
 
-bool StyledSegmentArray::HitsSegment(uint32_t start, uint32_t end) {
+const bool StyledSegmentArray::HitsSegment(uint32_t start, uint32_t end) {
     uint32_t start_segment_index = GetSegmentIndex(start);
     uint32_t end_segment_index = GetSegmentIndex(end);
     return start_segment_index != end_segment_index || InSegment(start_segment_index, start) || InSegment(end_segment_index, end);
