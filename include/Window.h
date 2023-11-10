@@ -14,32 +14,36 @@ namespace LibTesix {
 uint32_t GetTerminalWidth();
 uint32_t GetTerminalHeight();
 
+typedef std::pair<int32_t, int32_t> Range;
+
+Range ClampRange(uint32_t max, Range range);
+
 class Window {
   public:
-  private:
-    typedef std::pair<uint32_t, uint32_t> range;
+    Window(uint32_t x, uint32_t y, uint32_t width, uint32_t height, Style style = STANDARD_STYLE);
 
   public:
-    Window(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
+    void Draw(Style& state, bool should_update = true);
 
     void Write(uint32_t x, uint32_t y, icu::UnicodeString& str, Style style);
     void Write(uint32_t x, uint32_t y, const char* str, Style style);
-    void UpdateRaw();
 
-    void Draw(Style& state, bool should_update = true);
+    void ApplyOverlay(Overlay& overlay);
+    void ApplyOverlay();
+    void RemoveOverlay();
+
+    void Move(int32_t x, int32_t y);
+    void Resize(int32_t width, int32_t height);
+
+    void Clear(Style style);
+
+    void UpdateRaw();
 
     uint32_t GetHeight();
     uint32_t GetWidth();
 
     int32_t GetX();
     int32_t GetY();
-
-    void Move(int32_t x, int32_t y);
-    void Resize(int32_t width, int32_t height);
-
-    void ApplyOverlay(Overlay& overlay);
-    void ApplyOverlay();
-    void RemoveOverlay();
 
   private:
     std::vector<StyledString> lines;
@@ -48,10 +52,10 @@ class Window {
     bool overlay_enabled;
 
     std::string raw;
+
     Style raw_start_style;
     Style raw_end_style;
 
-  public:
     int32_t x;
     int32_t y;
 
@@ -59,9 +63,6 @@ class Window {
     uint32_t height;
 
   private:
-    const range GetXVisible();
-    const range GetYVisible();
-
     void ApplyOverlayToVisibleSubstr(uint32_t line, uint32_t visible_start, StyledString& visible);
 };
 

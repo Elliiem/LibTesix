@@ -16,23 +16,21 @@ void Dev() {
     Screen scr;
 
     Style foo;
-    foo.Blinking(false)->BG(Color(50, 50, 50))->Bold(true);
+    foo.Blinking(false)->BG(Color(50, 150, 50))->Bold(true);
 
-    Window win(10, 10, 10, 5);
+    Window win(10, 30, 10, 5, foo);
 
     win.Write(0, 0, "01234567890123456789012345678901234567890123456789", foo);
 
-    Overlay overlay(10, 10);
+    foo.Blinking(false);
 
-    overlay.Box(0, 0, 10, 5);
-
+    Overlay overlay(10, 5);
+    overlay.Box(foo);
     win.ApplyOverlay(overlay);
 
     win.UpdateRaw();
 
-    Style background;
-    background.BG(Color(0, 0, 50));
-    scr.Clear(background);
+    scr.Clear(foo);
 
     int32_t x_vel = 2;
     int32_t y_vel = 1;
@@ -52,8 +50,8 @@ void Dev() {
 
         win.Move(win.GetX() + x_vel, win.GetY() + y_vel);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(30));
-        scr.Clear(background);
+        std::this_thread::sleep_for(std::chrono::milliseconds(16));
+        scr.Clear(foo);
     }
 }
 

@@ -1,6 +1,7 @@
 #include "Screen.h"
 
 #include <csignal>
+#include <stdexcept>
 
 termios old_attr;
 namespace LibTesix {
@@ -30,6 +31,10 @@ void Screen::Clear(Style style) {
     printf(style.GetEscapeCode(state).c_str());
     state = style;
     printf("\033[2J\033[0;0f\n");
+}
+
+void Screen::ClearBox(uint32_t x, uint32_t y, uint32_t width, uint32_t height, Style style) {
+    throw std::runtime_error("Not implemented");
 }
 
 void Screen::Update() {

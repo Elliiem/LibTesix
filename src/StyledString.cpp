@@ -143,7 +143,7 @@ void StyledString::Resize(uint32_t size) {
     if(size == Len()) return;
 
     if(size > Len()) {
-        segments.back().str.append(std::string(size - Len(), '_').c_str());
+        segments.back().str.append(std::string(size - Len(), ' ').c_str());
     } else {
         StyledSegmentArray::Erase(size, Len() - 1);
         if(segments.size() == 0) {
@@ -191,11 +191,11 @@ std::string StyledString::Raw(const Style& state, bool should_update) {
     return segments[0].style.GetEscapeCode(state) + raw;
 }
 
-const Style StyledString::StyleStart() {
+Style StyledString::StyleStart() const {
     return segments[0].style;
 }
 
-const Style StyledString::StyleEnd() {
+Style StyledString::StyleEnd() const {
     return segments.back().style;
 }
 

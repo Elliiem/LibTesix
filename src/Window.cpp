@@ -6,7 +6,7 @@
 
 namespace LibTesix {
 
-Window::Window(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
+Window::Window(uint32_t x, uint32_t y, uint32_t width, uint32_t height, Style style) {
     this->x = x;
     this->y = y;
     this->width = width;
@@ -14,12 +14,9 @@ Window::Window(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
 
     StyledString fill;
     fill.Resize(width);
+    fill.ClearStyle(style);
 
     lines.resize(height, fill);
-
-    for(StyledString str : lines) {
-        str.PrintDebug();
-    }
 }
 
 void Window::Write(uint32_t x, uint32_t y, icu::UnicodeString& str, Style style) {
@@ -51,8 +48,8 @@ void Window::UpdateRaw() {
 
     std::string new_raw;
 
-    range x_visible = GetXVisible();
-    range y_visible = GetYVisible();
+    Range x_visible = ClampRange(GetTerminalWidth(), Range(x, x + width));
+    Range y_visible = ClampRange(GetTerminalHeight(), Range(y, y + height));
 
     if((x_visible.first == -1 && x_visible.second == -1) || (y_visible.first == -1 && y_visible.second == -1)) {
         raw = "";
@@ -65,12 +62,11 @@ void Window::UpdateRaw() {
     uint32_t clipped_x;
     clipped_x = x * (x > 0);
 
-    for(uint32_t i = y_visible.first; i <= y_visible.second; i++) {
+    for(uint32_t i = y_visible.first; i < y_visible.second; i++) {
         new_raw.append("\033[" + std::to_string(y + i + 1) + ";" + std::to_string(clipped_x + 1) + "f");
 
         StyledString visible = lines[i].Substr(x_visible.first, x_visible.second);
         if(overlay_enabled) ApplyOverlayToVisibleSubstr(i, x_visible.first, visible);
-        visible.PrintDebug();
 
         new_raw.append(visible.Raw(state, 0));
         state = visible.StyleEnd();
@@ -141,73 +137,10 @@ void Window::RemoveOverlay() {
     overlay_enabled = false;
 }
 
-const Window::range Window::GetXVisible() {
-    uint32_t term_width = GetTerminalWidth();
-
-    range ret(-1, -1);
-
-    if(x < 0) {
-        if(x + (int32_t)width <= 0) {
-            return ret;
-        }
-
-        ret.first = abs(x);
-
-        if(x + width > term_width) {
-            ret.second = width - (x + width - term_width) - 1;
-        } else {
-            ret.second = width - 1;
-        }
-
-        return ret;
-    } else if(x + width > term_width) {
-        if(x >= term_width) {
-            return ret;
-        }
-
-        ret.first = 0;
-        ret.second = width - (x + width - term_width) - 1;
-        return ret;
-    } else {
-        ret.first = 0;
-        ret.second = width - 1;
-
-        return ret;
-    }
-}
-
-const Window::range Window::GetYVisible() {
-    uint32_t term_height = GetTerminalHeight();
-
-    range ret(-1, -1);
-
-    if(y <= 0) {
-        if(y + (int32_t)height <= 0) {
-            return ret;
-        }
-
-        ret.first = abs(y);
-
-        if(y + height > term_height) {
-            ret.second = height - (y + height - term_height) - 1;
-        } else {
-            ret.second = height - 1;
-        }
-
-        return ret;
-    } else if(y + height > term_height) {
-        if(y >= term_height) {
-            return ret;
-        }
-
-        ret.first = 0;
-        ret.second = height - (y + height - term_height) - 1;
-        return ret;
-    } else {
-        ret.first = 0;
-        ret.second = height - 1;
-
-        return ret;
+void Window::Clear(Style style) {
+    for(StyledString& str : lines) {
+        str.Clear(style);
+        str.Resize(width);
     }
 }
 
@@ -219,9 +152,9 @@ void Window::ApplyOverlayToVisibleSubstr(uint32_t line, uint32_t visible_start, 
 
         if(seg.start < visible_start && seg.start + seg.Len() > visible_start) {
             icu::UnicodeString segment_substr(seg.str, visible_start, seg.Len() - visible_start);
-            visible.Write(segment_substr, seg.style, visible_start);
+            visible.Write(segment_substr, seg.style, 0);
         } else if(seg.start >= visible_start) {
-            visible.Write(seg.str, seg.style, seg.start);
+            visible.Write(seg.str, seg.style, seg.start - visible_start);
         }
     }
 
@@ -248,6 +181,41 @@ uint32_t GetTerminalHeight() {
 #else
     return w.ws_row;
 #endif
+}
+
+Range ClampRange(uint32_t max, Range range) {
+    Range ret(-1, -1);
+
+    int32_t range_len = range.second - range.first;
+
+    if(range.first <= 0) {
+        if(range.first + range_len <= 0) {
+            return ret;
+        }
+
+        ret.first = abs(range.first);
+
+        if(range.second > max) {
+            ret.second = range_len - (range.second - max) - 1;
+        } else {
+            ret.second = range_len;
+        }
+
+        return ret;
+    } else if(range.second > max) {
+        if(range.first >= max) {
+            return ret;
+        }
+
+        ret.first = 0;
+        ret.second = range_len - (range.second - max) - 1;
+        return ret;
+    } else {
+        ret.first = 0;
+        ret.second = range_len;
+
+        return ret;
+    }
 }
 
 } // namespace LibTesix

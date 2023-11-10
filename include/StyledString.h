@@ -42,8 +42,8 @@ struct StyledString : private StyledSegmentArray {
     void UpdateRaw();
     std::string Raw(const Style& state, bool should_update = true);
 
-    const Style StyleStart();
-    const Style StyleEnd();
+    Style StyleStart() const;
+    Style StyleEnd() const;
 
     void Print(Style& state, bool should_update = true);
     using StyledSegmentArray::PrintDebug;

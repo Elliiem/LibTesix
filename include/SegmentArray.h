@@ -17,7 +17,7 @@ struct StyledSegment {
     uint32_t start;
 
     StyledSegment Split(uint32_t index);
-    uint32_t Len();
+    uint32_t Len() const;
 };
 
 struct StyledSegmentArray {
@@ -38,17 +38,17 @@ struct StyledSegmentArray {
 
     void Clear();
 
-    const uint32_t Len();
+    uint32_t Len() const;
 
-    const void PrintDebug();
+    void PrintDebug() const;
 
   protected:
-    uint32_t GetSegmentIndex(uint32_t index);
+    uint32_t GetSegmentIndex(uint32_t index) const;
     void InsertSegment(StyledSegment segment, uint32_t index);
 
   private:
-    const bool InSegment(uint32_t segment_index, uint32_t index);
+    bool InSegment(uint32_t segment_index, uint32_t index) const;
     bool Clean(uint32_t index);
-    const bool HitsSegment(uint32_t start, uint32_t end);
+    bool HitsSegment(uint32_t start, uint32_t end) const;
 };
 } // namespace LibTesix

@@ -19,6 +19,8 @@ class Screen {
     Style state;
 
     void Clear(Style style);
+    void ClearBox(uint32_t x, uint32_t y, uint32_t width, uint32_t height, Style style);
+
     void Update();
 };
 
