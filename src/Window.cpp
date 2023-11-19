@@ -1,5 +1,7 @@
 #include "Window.h"
 
+#include "Terminal.h"
+
 #include <iostream>
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -66,7 +68,7 @@ void Window::UpdateRaw() {
         new_raw.append("\033[" + std::to_string(y + i + 1) + ";" + std::to_string(clipped_x + 1) + "f");
 
         StyledString visible = lines[i].Substr(x_visible.first, x_visible.second);
-        if(overlay_enabled) ApplyOverlayToVisibleSubstr(i, x_visible.first, visible);
+        if(overlay_enabled && i < overlay.height) ApplySegmentArray(overlay.lines[i], visible, x_visible.first);
 
         new_raw.append(visible.Raw(state, 0));
         state = visible.StyleEnd();
@@ -144,45 +146,6 @@ void Window::Clear(Style style) {
     }
 }
 
-void Window::ApplyOverlayToVisibleSubstr(uint32_t line, uint32_t visible_start, StyledString& visible) {
-    for(StyledSegment seg : overlay.lines[line].segments) {
-        if(seg.start >= visible_start + visible.Len()) {
-            break;
-        }
-
-        if(seg.start < visible_start && seg.start + seg.Len() > visible_start) {
-            icu::UnicodeString segment_substr(seg.str, visible_start, seg.Len() - visible_start);
-            visible.Write(segment_substr, seg.style, 0);
-        } else if(seg.start >= visible_start) {
-            visible.Write(seg.str, seg.style, seg.start - visible_start);
-        }
-    }
-
-    visible.UpdateRaw();
-}
-
-uint32_t GetTerminalWidth() {
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-
-#ifdef TTY_SIZE_OVERRIDE
-    return 211;
-#else
-    return w.ws_col;
-#endif
-}
-
-uint32_t GetTerminalHeight() {
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-
-#ifdef TTY_SIZE_OVERRIDE
-    return 49;
-#else
-    return w.ws_row;
-#endif
-}
-
 Range ClampRange(uint32_t max, Range range) {
     Range ret(-1, -1);
 
@@ -216,6 +179,23 @@ Range ClampRange(uint32_t max, Range range) {
 
         return ret;
     }
+}
+
+void ApplySegmentArray(StyledSegmentArray& arr, StyledString& str, uint32_t offset) {
+    for(StyledSegment& seg : arr.segments) {
+        if(seg.start >= offset + str.Len()) {
+            break;
+        }
+
+        if(seg.start < offset && seg.start + seg.Len() > offset) {
+            icu::UnicodeString segment_substr(seg.str, offset, seg.Len() - offset);
+            str.Write(segment_substr, seg.style, 0);
+        } else if(seg.start >= offset) {
+            str.Write(seg.str, seg.style, seg.start - offset);
+        }
+    }
+
+    str.UpdateRaw();
 }
 
 } // namespace LibTesix

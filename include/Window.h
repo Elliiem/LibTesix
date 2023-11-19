@@ -6,17 +6,13 @@
 #include <unicode/unistr.h>
 #include <vector>
 
-// Overrides the size of the terminal to 211 colums and 41 lines
-// #define TTY_SIZE_OVERRIDE
-
 namespace LibTesix {
-
-uint32_t GetTerminalWidth();
-uint32_t GetTerminalHeight();
 
 typedef std::pair<int32_t, int32_t> Range;
 
 Range ClampRange(uint32_t max, Range range);
+
+void ApplySegmentArray(StyledSegmentArray& arr, StyledString& str, uint32_t offset = 0);
 
 class Window {
   public:
@@ -61,9 +57,6 @@ class Window {
 
     uint32_t width;
     uint32_t height;
-
-  private:
-    void ApplyOverlayToVisibleSubstr(uint32_t line, uint32_t visible_start, StyledString& visible);
 };
 
 } // namespace LibTesix

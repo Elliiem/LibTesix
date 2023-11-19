@@ -2,6 +2,10 @@
 
 #include "SegmentArray.h"
 
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
+
 namespace LibTesix {
 struct Overlay {
     Overlay();
@@ -20,5 +24,16 @@ struct Overlay {
 
     uint32_t height;
     uint32_t width;
+
+    void UpdateWidth();
 };
+
+// TODO Create JSON.h and move to it
+Overlay ReadOverlay(rapidjson::Document& json, const char* name);
+
+rapidjson::Document OpenJson(const char* filename);
+void SaveJson(rapidjson::Document& json, const char* filename);
+
+void WriteOverlay(Overlay& overlay, std::string& name, rapidjson::Document& json);
+
 } // namespace LibTesix

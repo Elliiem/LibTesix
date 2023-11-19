@@ -33,6 +33,9 @@ struct ColorPair {
 const ColorPair STANDARD_COLORPAIR(STANDARD_FG, STANDARD_BG);
 
 struct Style {
+    // The indicies of modifiers in LibTesix::Style::bool_state
+    enum States { BOLD, FAINT, ITALIC, UNDERLINED, BLINKING, REVERSE, STATES_COUNT };
+
     Style();
     Style(ColorPair col);
 
@@ -52,7 +55,6 @@ struct Style {
 
     void Reset();
 
-    // private:
     //  States of modifiers eg. bold, italic or blinking text
     //  these modifiers are stored in this vector at the values in the enum States, defined in the Style source file
     std::vector<bool> bool_state;

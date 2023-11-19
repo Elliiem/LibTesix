@@ -4,9 +4,6 @@
 
 namespace LibTesix {
 
-// The indicies of modifiers in LibTesix::Style::bool_state
-enum States { BOLD, FAINT, ITALIC, UNDERLINED, BLINKING, REVERSE, STATES_COUNT };
-
 // This stores the escape codes to achieve the modifiers enumerated in States found above
 // each value has two corresponding escape codes the first one is to turn that modifier off the second one to turn it on
 // To get the corresponding index from a modifier to a escape code use this formula: 2 * modifier + bool(false = off, true = on)
