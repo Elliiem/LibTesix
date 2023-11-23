@@ -1,0 +1,354 @@
+{
+    "window": {
+        "x": 10,
+        "y": 30,
+        "width": 10,
+        "height": 5,
+        "lines": [
+            {
+                "segments": [
+                    {
+                        "start": 0,
+                        "string": "0123456789",
+                        "style": {
+                            "fg": {
+                                "r": 255,
+                                "g": 255,
+                                "b": 255
+                            },
+                            "bg": {
+                                "r": 50,
+                                "g": 150,
+                                "b": 50
+                            },
+                            "modifiers": {
+                                "thickness": 1,
+                                "blinking": false,
+                                "reverse": false,
+                                "underlined": false,
+                                "italic": false
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "segments": [
+                    {
+                        "start": 0,
+                        "string": "0123456789",
+                        "style": {
+                            "fg": {
+                                "r": 255,
+                                "g": 255,
+                                "b": 255
+                            },
+                            "bg": {
+                                "r": 50,
+                                "g": 150,
+                                "b": 50
+                            },
+                            "modifiers": {
+                                "thickness": 1,
+                                "blinking": false,
+                                "reverse": false,
+                                "underlined": false,
+                                "italic": false
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "segments": [
+                    {
+                        "start": 0,
+                        "string": "0123456789",
+                        "style": {
+                            "fg": {
+                                "r": 255,
+                                "g": 255,
+                                "b": 255
+                            },
+                            "bg": {
+                                "r": 50,
+                                "g": 150,
+                                "b": 50
+                            },
+                            "modifiers": {
+                                "thickness": 1,
+                                "blinking": false,
+                                "reverse": false,
+                                "underlined": false,
+                                "italic": false
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "segments": [
+                    {
+                        "start": 0,
+                        "string": "0123456789",
+                        "style": {
+                            "fg": {
+                                "r": 255,
+                                "g": 255,
+                                "b": 255
+                            },
+                            "bg": {
+                                "r": 50,
+                                "g": 150,
+                                "b": 50
+                            },
+                            "modifiers": {
+                                "thickness": 1,
+                                "blinking": false,
+                                "reverse": false,
+                                "underlined": false,
+                                "italic": false
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "segments": [
+                    {
+                        "start": 0,
+                        "string": "0123456789",
+                        "style": {
+                            "fg": {
+                                "r": 255,
+                                "g": 255,
+                                "b": 255
+                            },
+                            "bg": {
+                                "r": 50,
+                                "g": 150,
+                                "b": 50
+                            },
+                            "modifiers": {
+                                "thickness": 1,
+                                "blinking": false,
+                                "reverse": false,
+                                "underlined": false,
+                                "italic": false
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "overlay_enabled": true,
+        "overlay": {
+            "lines": [
+                {
+                    "segments": [
+                        {
+                            "start": 0,
+                            "string": "┏━━━━━━━━┓",
+                            "style": {
+                                "fg": {
+                                    "r": 255,
+                                    "g": 255,
+                                    "b": 255
+                                },
+                                "bg": {
+                                    "r": 50,
+                                    "g": 150,
+                                    "b": 50
+                                },
+                                "modifiers": {
+                                    "thickness": 0,
+                                    "blinking": false,
+                                    "reverse": false,
+                                    "underlined": false,
+                                    "italic": false
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "segments": [
+                        {
+                            "start": 0,
+                            "string": "┃",
+                            "style": {
+                                "fg": {
+                                    "r": 255,
+                                    "g": 255,
+                                    "b": 255
+                                },
+                                "bg": {
+                                    "r": 50,
+                                    "g": 150,
+                                    "b": 50
+                                },
+                                "modifiers": {
+                                    "thickness": 0,
+                                    "blinking": false,
+                                    "reverse": false,
+                                    "underlined": false,
+                                    "italic": false
+                                }
+                            }
+                        },
+                        {
+                            "start": 9,
+                            "string": "┃",
+                            "style": {
+                                "fg": {
+                                    "r": 255,
+                                    "g": 255,
+                                    "b": 255
+                                },
+                                "bg": {
+                                    "r": 50,
+                                    "g": 150,
+                                    "b": 50
+                                },
+                                "modifiers": {
+                                    "thickness": 0,
+                                    "blinking": false,
+                                    "reverse": false,
+                                    "underlined": false,
+                                    "italic": false
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "segments": [
+                        {
+                            "start": 0,
+                            "string": "┃",
+                            "style": {
+                                "fg": {
+                                    "r": 255,
+                                    "g": 255,
+                                    "b": 255
+                                },
+                                "bg": {
+                                    "r": 50,
+                                    "g": 150,
+                                    "b": 50
+                                },
+                                "modifiers": {
+                                    "thickness": 0,
+                                    "blinking": false,
+                                    "reverse": false,
+                                    "underlined": false,
+                                    "italic": false
+                                }
+                            }
+                        },
+                        {
+                            "start": 9,
+                            "string": "┃",
+                            "style": {
+                                "fg": {
+                                    "r": 255,
+                                    "g": 255,
+                                    "b": 255
+                                },
+                                "bg": {
+                                    "r": 50,
+                                    "g": 150,
+                                    "b": 50
+                                },
+                                "modifiers": {
+                                    "thickness": 0,
+                                    "blinking": false,
+                                    "reverse": false,
+                                    "underlined": false,
+                                    "italic": false
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "segments": [
+                        {
+                            "start": 0,
+                            "string": "┃",
+                            "style": {
+                                "fg": {
+                                    "r": 255,
+                                    "g": 255,
+                                    "b": 255
+                                },
+                                "bg": {
+                                    "r": 50,
+                                    "g": 150,
+                                    "b": 50
+                                },
+                                "modifiers": {
+                                    "thickness": 0,
+                                    "blinking": false,
+                                    "reverse": false,
+                                    "underlined": false,
+                                    "italic": false
+                                }
+                            }
+                        },
+                        {
+                            "start": 9,
+                            "string": "┃",
+                            "style": {
+                                "fg": {
+                                    "r": 255,
+                                    "g": 255,
+                                    "b": 255
+                                },
+                                "bg": {
+                                    "r": 50,
+                                    "g": 150,
+                                    "b": 50
+                                },
+                                "modifiers": {
+                                    "thickness": 0,
+                                    "blinking": false,
+                                    "reverse": false,
+                                    "underlined": false,
+                                    "italic": false
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "segments": [
+                        {
+                            "start": 0,
+                            "string": "┗━━━━━━━━┛",
+                            "style": {
+                                "fg": {
+                                    "r": 255,
+                                    "g": 255,
+                                    "b": 255
+                                },
+                                "bg": {
+                                    "r": 50,
+                                    "g": 150,
+                                    "b": 50
+                                },
+                                "modifiers": {
+                                    "thickness": 0,
+                                    "blinking": false,
+                                    "reverse": false,
+                                    "underlined": false,
+                                    "italic": false
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

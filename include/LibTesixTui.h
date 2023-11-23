@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Json.h"
 #include "Overlay.h"
 #include "SegmentArray.h"
 #include "Style.h"
@@ -19,17 +20,8 @@ void Dev() {
     Style foo;
     foo.Blinking(false)->BG(Color(50, 150, 50))->Bold(true);
 
-    Window win(10, 30, 10, 5, foo);
-
-    win.Write(0, 0, "01234567890123456789012345678901234567890123456789", foo);
-
-    foo.Blinking(false);
-
-    rapidjson::Document overlays_json = OpenJson("/home/elliem/Dev/Programs/1st-Party/cpp/LibTesix/examples/bouncing_box/overlay.json");
-    Overlay overlay = ReadOverlay(overlays_json, "10x5_box");
-
-    win.ApplyOverlay(overlay);
-
+    JsonDocument json("/home/elliem/Dev/Programs/1st-Party/cpp/LibTesix/examples/bouncing_box/window.json");
+    Window win(json, "window");
     win.UpdateRaw();
 
     Clear(foo);
@@ -38,7 +30,7 @@ void Dev() {
     int32_t y_vel = 1;
 
     while(true) {
-        win.Draw(state, 0);
+        win.Draw(state, true);
 
         Update();
 
@@ -52,7 +44,7 @@ void Dev() {
 
         win.Move(win.GetX() + x_vel, win.GetY() + y_vel);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
         Clear(foo);
     }
 }

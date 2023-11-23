@@ -21,7 +21,7 @@ void Exit();
 void Clear(Style style);
 void Update();
 
-uint32_t GetTerminalWidth();
-uint32_t GetTerminalHeight();
+uint64_t GetTerminalWidth();
+uint64_t GetTerminalHeight();
 
 } // namespace LibTesix

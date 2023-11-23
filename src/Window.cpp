@@ -8,7 +8,7 @@
 
 namespace LibTesix {
 
-Window::Window(uint32_t x, uint32_t y, uint32_t width, uint32_t height, Style style) {
+Window::Window(int64_t x, int64_t y, uint64_t width, uint64_t height, Style style) {
     this->x = x;
     this->y = y;
     this->width = width;
@@ -21,25 +21,33 @@ Window::Window(uint32_t x, uint32_t y, uint32_t width, uint32_t height, Style st
     lines.resize(height, fill);
 }
 
-void Window::Write(uint32_t x, uint32_t y, icu::UnicodeString& str, Style style) {
-    if(x >= width) throw std::runtime_error("x: " + std::to_string(x) + " is out of bounds! << Window::Print()");
-    else if(y >= height)
+Window::Window(JsonDocument& json, const char* name) {
+    LoadFromJson(json, name);
+}
+
+Window::Window(rapidjson::Value& json_window) {
+    LoadFromJson(json_window);
+}
+
+void Window::Write(uint64_t col, uint64_t line, icu::UnicodeString& str, Style style) {
+    if(col >= width) throw std::runtime_error("x: " + std::to_string(x) + " is out of bounds! << Window::Print()");
+    else if(line >= height)
         throw std::runtime_error("y: " + std::to_string(y) + " is out of bounds! << Window::Print()");
 
     icu::UnicodeString overflow;
 
-    overflow = lines[y].Write(str, style, x);
-    y++;
-    while(!overflow.isEmpty() && y < height) {
-        overflow = lines[y].Write(overflow, style, 0);
-        y++;
+    overflow = lines[line].Write(str, style, col);
+    line++;
+    while(!overflow.isEmpty() && line < height) {
+        overflow = lines[line].Write(overflow, style, 0);
+        line++;
     }
 }
 
-void Window::Write(uint32_t x, uint32_t y, const char* str, Style style) {
+void Window::Write(uint64_t col, uint64_t line, const char* str, Style style) {
     icu::UnicodeString uc_str(str);
 
-    Write(x, y, uc_str, style);
+    Write(col, line, uc_str, style);
 }
 
 void Window::UpdateRaw() {
@@ -61,10 +69,10 @@ void Window::UpdateRaw() {
     Style state = lines[y_visible.first].StyleStart();
     raw_start_style = state;
 
-    uint32_t clipped_x;
+    uint64_t clipped_x;
     clipped_x = x * (x > 0);
 
-    for(uint32_t i = y_visible.first; i < y_visible.second; i++) {
+    for(uint64_t i = y_visible.first; i < y_visible.second; i++) {
         new_raw.append("\033[" + std::to_string(y + i + 1) + ";" + std::to_string(clipped_x + 1) + "f");
 
         StyledString visible = lines[i].Substr(x_visible.first, x_visible.second);
@@ -89,29 +97,28 @@ void Window::Draw(Style& state, bool should_update) {
     state = raw_end_style;
 }
 
-uint32_t Window::GetHeight() {
+uint64_t Window::GetHeight() {
     return height;
 }
 
-uint32_t Window::GetWidth() {
+uint64_t Window::GetWidth() {
     return width;
 }
 
-int32_t Window::GetX() {
+int64_t Window::GetX() {
     return x;
 }
 
-int32_t Window::GetY() {
+int64_t Window::GetY() {
     return y;
 }
 
-void Window::Move(int32_t x, int32_t y) {
+void Window::Move(int64_t x, int64_t y) {
     this->x = x;
     this->y = y;
-    UpdateRaw();
 }
 
-void Window::Resize(int32_t width, int32_t height) {
+void Window::Resize(uint64_t width, uint64_t height) {
     lines.resize(height);
 
     Style state;
@@ -122,13 +129,12 @@ void Window::Resize(int32_t width, int32_t height) {
 
     this->width = width;
     this->height = height;
-
-    int x = 0;
 }
 
 void Window::ApplyOverlay(Overlay& overlay) {
     this->overlay = Overlay(overlay);
     overlay_enabled = true;
+    has_overlay = true;
 }
 
 void Window::ApplyOverlay() {
@@ -146,10 +152,10 @@ void Window::Clear(Style style) {
     }
 }
 
-Range ClampRange(uint32_t max, Range range) {
+Range ClampRange(uint64_t max, Range range) {
     Range ret(-1, -1);
 
-    int32_t range_len = range.second - range.first;
+    int64_t range_len = range.second - range.first;
 
     if(range.first <= 0) {
         if(range.first + range_len <= 0) {
@@ -181,7 +187,7 @@ Range ClampRange(uint32_t max, Range range) {
     }
 }
 
-void ApplySegmentArray(StyledSegmentArray& arr, StyledString& str, uint32_t offset) {
+void ApplySegmentArray(StyledSegmentArray& arr, StyledString& str, uint64_t offset) {
     for(StyledSegment& seg : arr.segments) {
         if(seg.start >= offset + str.Len()) {
             break;

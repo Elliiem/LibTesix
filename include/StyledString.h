@@ -10,7 +10,7 @@
 
 namespace LibTesix {
 
-struct StyledString : private StyledSegmentArray {
+struct StyledString : public StyledSegmentArray {
   public:
     StyledString(const icu::UnicodeString& base_string, Style style = STANDARD_STYLE);
     StyledString(const char* base_string, Style style = STANDARD_STYLE);
@@ -22,17 +22,17 @@ struct StyledString : private StyledSegmentArray {
 
   public:
   public:
-    void Insert(const icu::UnicodeString& str, Style style, uint32_t index);
-    void Insert(const char* str, Style style, uint32_t index);
+    void Insert(const icu::UnicodeString& str, Style style, uint64_t index);
+    void Insert(const char* str, Style style, uint64_t index);
     void Append(const icu::UnicodeString& str, Style style);
     void Append(const char* str, Style style);
-    void Erase(uint32_t start, uint32_t end);
-    icu::UnicodeString Write(const icu::UnicodeString& str, Style style, uint32_t index);
-    icu::UnicodeString Write(const char* str, Style style, uint32_t index);
+    void Erase(uint64_t start, uint64_t end);
+    icu::UnicodeString Write(const icu::UnicodeString& str, Style style, uint64_t index);
+    icu::UnicodeString Write(const char* str, Style style, uint64_t index);
 
-    StyledString Substr(uint32_t start, uint32_t end);
+    StyledString Substr(uint64_t start, uint64_t end);
 
-    void Resize(uint32_t size);
+    void Resize(uint64_t size);
 
     using StyledSegmentArray::Len;
 
@@ -51,7 +51,7 @@ struct StyledString : private StyledSegmentArray {
   private:
     std::string raw;
 
-    void UpdateSegmentStart(uint32_t i = 0);
+    void UpdateSegmentStart(uint64_t i = 0);
 };
 
 } // namespace LibTesix

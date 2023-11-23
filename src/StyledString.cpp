@@ -30,10 +30,10 @@ StyledString::StyledString() {
     UpdateRaw();
 }
 
-void StyledString::Insert(const icu::UnicodeString& str, Style style, uint32_t index) {
+void StyledString::Insert(const icu::UnicodeString& str, Style style, uint64_t index) {
     if(index > Len()) throw std::runtime_error("Index " + std::to_string(index) + " is out of bounds! << StyledString::Insert)");
 
-    uint32_t segment_index = GetSegmentIndex(index);
+    uint64_t segment_index = GetSegmentIndex(index);
 
     if(index == segments[segment_index].start) {
         InsertSegment(StyledSegment(str, style, index), segment_index);
@@ -45,7 +45,7 @@ void StyledString::Insert(const icu::UnicodeString& str, Style style, uint32_t i
     UpdateSegmentStart(segment_index);
 }
 
-void StyledString::Insert(const char* str, Style style, uint32_t index) {
+void StyledString::Insert(const char* str, Style style, uint64_t index) {
     icu::UnicodeString uc_str(str);
     Insert(uc_str, style, index);
 }
@@ -63,15 +63,15 @@ void StyledString::Append(const char* str, Style style) {
     Append(uc_str, style);
 }
 
-void StyledString::Erase(uint32_t start, uint32_t end) {
-    uint32_t start_segment_index = GetSegmentIndex(start);
+void StyledString::Erase(uint64_t start, uint64_t end) {
+    uint64_t start_segment_index = GetSegmentIndex(start);
 
     StyledSegmentArray::Erase(start, end);
 
     UpdateSegmentStart(start_segment_index);
 }
 
-icu::UnicodeString StyledString::Write(const icu::UnicodeString& str, Style style, uint32_t index) {
+icu::UnicodeString StyledString::Write(const icu::UnicodeString& str, Style style, uint64_t index) {
     if(index >= Len()) throw std::runtime_error("Index " + std::to_string(index) + " is out of bounds << StyledString::Write()");
 
     if(str.length() == 0) return icu::UnicodeString();
@@ -79,10 +79,10 @@ icu::UnicodeString StyledString::Write(const icu::UnicodeString& str, Style styl
     icu::UnicodeString write_string(str);
     icu::UnicodeString overflow;
 
-    int32_t over = (index + str.length()) - Len();
+    int64_t over = (index + str.length()) - Len();
 
     if(over > 0) {
-        uint32_t overflow_index = write_string.length() - over;
+        uint64_t overflow_index = write_string.length() - over;
 
         write_string.extractBetween(overflow_index, write_string.length(), overflow);
         write_string.remove(overflow_index);
@@ -93,20 +93,20 @@ icu::UnicodeString StyledString::Write(const icu::UnicodeString& str, Style styl
     return overflow;
 }
 
-icu::UnicodeString StyledString::Write(const char* str, Style style, uint32_t index) {
+icu::UnicodeString StyledString::Write(const char* str, Style style, uint64_t index) {
     icu::UnicodeString uc_str(str);
     return Write(uc_str, style, index);
 }
 
-StyledString StyledString::Substr(uint32_t start, uint32_t end) {
+StyledString StyledString::Substr(uint64_t start, uint64_t end) {
     std::vector<StyledSegment> substr_segments;
 
-    uint32_t start_segment_index = GetSegmentIndex(start);
-    uint32_t end_segment_index = GetSegmentIndex(end);
+    uint64_t start_segment_index = GetSegmentIndex(start);
+    uint64_t end_segment_index = GetSegmentIndex(end);
 
     if(start_segment_index == end_segment_index) {
         icu::UnicodeString segment_substr;
-        uint32_t segment_start = segments[start_segment_index].start;
+        uint64_t segment_start = segments[start_segment_index].start;
 
         segments[start_segment_index].str.extractBetween(start - segment_start, end - segment_start + 1, segment_substr);
         substr_segments.push_back(StyledSegment(segment_substr, segments[start_segment_index].style, 0));
@@ -115,22 +115,22 @@ StyledString StyledString::Substr(uint32_t start, uint32_t end) {
 
         // get substring of the start segment
         // ...and add that to substr_segments
-        uint32_t start_segment_len = segments[start_segment_index].Len();
-        uint32_t start_segment_start = segments[start_segment_index].start;
+        uint64_t start_segment_len = segments[start_segment_index].Len();
+        uint64_t start_segment_start = segments[start_segment_index].start;
 
         segments[start_segment_index].str.extractBetween(start - start_segment_start, start_segment_len, segment_substr);
         substr_segments.push_back(StyledSegment(segment_substr, segments[start_segment_index].style, 0));
 
         // Add every segment between the start segment and the end segment
-        for(uint32_t i = start_segment_index + 1; i < end_segment_index; i++) {
-            uint32_t substr_len = substr_segments.back().start + substr_segments.back().Len();
+        for(uint64_t i = start_segment_index + 1; i < end_segment_index; i++) {
+            uint64_t substr_len = substr_segments.back().start + substr_segments.back().Len();
             substr_segments.push_back(StyledSegment(segments[i].str, segments[i].style, substr_len));
         }
 
         // get substring of the end segment
         // ...and add that to substr_segments
-        uint32_t end_segment_start = segments[end_segment_index].start;
-        uint32_t substr_len = substr_segments.back().start + substr_segments.back().Len();
+        uint64_t end_segment_start = segments[end_segment_index].start;
+        uint64_t substr_len = substr_segments.back().start + substr_segments.back().Len();
 
         segments[end_segment_index].str.extractBetween(0, end - end_segment_start + 1, segment_substr);
         substr_segments.push_back(StyledSegment(segment_substr, segments[end_segment_index].style, substr_len));
@@ -139,7 +139,7 @@ StyledString StyledString::Substr(uint32_t start, uint32_t end) {
     return StyledString(substr_segments);
 }
 
-void StyledString::Resize(uint32_t size) {
+void StyledString::Resize(uint64_t size) {
     if(size == Len()) return;
 
     if(size > Len()) {
@@ -206,13 +206,13 @@ void StyledString::Print(Style& state, bool should_update) {
     state = StyleEnd();
 }
 
-void StyledString::UpdateSegmentStart(uint32_t index) {
-    uint32_t next_start = 0;
+void StyledString::UpdateSegmentStart(uint64_t index) {
+    uint64_t next_start = 0;
     if(index > 0) {
         next_start = segments[index - 1].start + segments[index - 1].Len();
     }
 
-    for(uint32_t i = index; i < segments.size(); i++) {
+    for(uint64_t i = index; i < segments.size(); i++) {
         segments[i].start = next_start;
 
         next_start = segments[i].start + segments[i].Len();

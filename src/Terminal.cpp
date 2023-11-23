@@ -47,7 +47,7 @@ void Update() {
     printf("\033[0;0f\n");
 }
 
-uint32_t GetTerminalWidth() {
+uint64_t GetTerminalWidth() {
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
@@ -58,7 +58,7 @@ uint32_t GetTerminalWidth() {
 #endif
 }
 
-uint32_t GetTerminalHeight() {
+uint64_t GetTerminalHeight() {
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 

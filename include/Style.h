@@ -7,14 +7,14 @@
 namespace LibTesix {
 
 struct Color {
-    Color(uint32_t r, uint32_t g, uint32_t b);
+    Color(uint64_t r, uint64_t g, uint64_t b);
     Color();
 
     bool operator==(const Color& other);
 
-    uint32_t r;
-    uint32_t g;
-    uint32_t b;
+    uint64_t r;
+    uint64_t g;
+    uint64_t b;
 };
 
 const Color STANDARD_FG(255, 255, 255);
@@ -34,7 +34,7 @@ const ColorPair STANDARD_COLORPAIR(STANDARD_FG, STANDARD_BG);
 
 struct Style {
     // The indicies of modifiers in LibTesix::Style::bool_state
-    enum States { BOLD, FAINT, ITALIC, UNDERLINED, BLINKING, REVERSE, STATES_COUNT };
+    enum States { BOLD, FAINT, BLINKING, REVERSE, UNDERLINED, ITALIC, STATES_COUNT };
 
     Style();
     Style(ColorPair col);
@@ -50,17 +50,20 @@ struct Style {
     Style* FG(Color val);
     Style* Color(ColorPair val);
 
+    bool operator[](States state) const;
+
     // Returns the escape code sequence used in order to change from the supplied teminal state to this style
     std::string GetEscapeCode(const Style& state);
 
     void Reset();
 
+    // The color of the Style
+    ColorPair col;
+
+  private:
     //  States of modifiers eg. bold, italic or blinking text
     //  these modifiers are stored in this vector at the values in the enum States, defined in the Style source file
     std::vector<bool> bool_state;
-
-    // The color of the Style
-    ColorPair col;
 };
 
 const Style STANDARD_STYLE;

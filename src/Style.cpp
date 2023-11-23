@@ -1,5 +1,6 @@
 #include "Style.h"
 
+#include <cstring>
 #include <iostream>
 
 namespace LibTesix {
@@ -22,7 +23,7 @@ const std::vector<std::string> ESCAPE_CODES = {
     "\033[7m",
 };
 
-Color::Color(uint32_t r, uint32_t g, uint32_t b) {
+Color::Color(uint64_t r, uint64_t g, uint64_t b) {
     this->r = r;
     this->g = g;
     this->b = b;
@@ -104,13 +105,17 @@ Style* Style::Color(ColorPair val) {
     return this;
 }
 
-std::string Style::GetEscapeCode(const Style& state) {
-    std::vector<std::pair<uint32_t, bool>> bool_changes(STATES_COUNT);
-    uint32_t change_count = 0;
+bool Style::operator[](States state) const {
+    return bool_state[state];
+}
 
-    for(uint32_t i = 0; i < STATES_COUNT; i++) {
+std::string Style::GetEscapeCode(const Style& state) {
+    std::vector<std::pair<uint64_t, bool>> bool_changes(STATES_COUNT);
+    uint64_t change_count = 0;
+
+    for(uint64_t i = 0; i < STATES_COUNT; i++) {
         if(bool_state[i] != state.bool_state[i]) {
-            bool_changes[change_count] = std::pair<uint32_t, bool>(i, bool_state[i]);
+            bool_changes[change_count] = std::pair<uint64_t, bool>(i, bool_state[i]);
             change_count++;
         }
     }
@@ -119,7 +124,7 @@ std::string Style::GetEscapeCode(const Style& state) {
 
     std::string ret;
 
-    for(std::pair<uint32_t, bool> change : bool_changes) {
+    for(std::pair<uint64_t, bool> change : bool_changes) {
         ret.append(ESCAPE_CODES[2 * change.first + change.second]);
     }
 
@@ -136,7 +141,9 @@ std::string Style::GetEscapeCode(const Style& state) {
 
 void Style::Reset() {
     col = STANDARD_COLORPAIR;
-    bool_state = STANDARD_STYLE.bool_state;
+
+    bool_state.clear();
+    bool_state.resize(STATES_COUNT, false);
 }
 
 } // namespace LibTesix
