@@ -8,30 +8,24 @@
 #include "Terminal.h"
 #include "Window.h"
 
-#include <cinttypes>
-#include <iostream>
-#include <thread>
-
-namespace LibTesix {
+/*namespace LibTesix {
 
 void Dev() {
     InitScreen();
 
-    Style foo;
-    foo.Blinking(false)->BG(Color(50, 150, 50))->Bold(true);
+    Style background;
+    background.BG(Color(50, 150, 50));
 
-    JsonDocument json("/home/elliem/Dev/Programs/1st-Party/cpp/LibTesix/examples/bouncing_box/window.json");
+    JsonDocument json("/home/elliem/Dev/Programs/1st-Party/cpp/LibTesix/Examples/bouncing_box/window.json");
     Window win(json, "window");
-    win.UpdateRaw();
 
-    Clear(foo);
+    Clear(background);
 
     int32_t x_vel = 2;
     int32_t y_vel = 1;
 
     while(true) {
         win.Draw(state, true);
-
         Update();
 
         if(win.GetX() + 1 >= GetTerminalWidth() - win.GetWidth() || win.GetX() <= 0) {
@@ -45,10 +39,10 @@ void Dev() {
         win.Move(win.GetX() + x_vel, win.GetY() + y_vel);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        Clear(foo);
+        Clear(background);
     }
 }
 
-} // namespace LibTesix
+} // namespace LibTesix*/
 
 // 🮲🮳

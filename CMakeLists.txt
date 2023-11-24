@@ -3,36 +3,27 @@ cmake_minimum_required(VERSION 3.5)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
-set(PROJ Tesix)
-project(${PROJ})
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+project(libTesix)
 
 set(SOURCES)
-file(GLOB_RECURSE SOURCES ${CMAKE_SOURCE_DIR}/src/*.cpp)
+file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
-foreach(VAL ${SOURCES})
-    message(STATUS ${VAL})
-endforeach()
-
-set(INCLUDES)
-file(GLOB_RECURSE INCLUDES ${CMAKE_SOURCE_DIR}/include/*.h)
-
-foreach(VAL ${INCLUDES})
-    message(STATUS ${VAL})
-endforeach()
+add_subdirectory(Examples)
 
 find_package(ICU 72.1 COMPONENTS uc i18n REQUIRED)
 
-add_library(${PROJ} STATIC
+add_library(${PROJECT_NAME} STATIC
     ${SOURCES}
-    ${INCLUDES}
 )
 
-target_include_directories(${PROJ} PUBLIC
-    ./include
+set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(${PROJ} PRIVATE
+target_link_libraries(${PROJECT_NAME} PUBLIC
     ICU::uc
     ICU::i18n
 )

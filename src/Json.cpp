@@ -22,6 +22,7 @@ void AddToDocument(rapidjson::Value& val, const char* key, uint64_t name_c, rapi
     }
 }
 
+// Get style of a segment from json
 Style GetSegmentStyle(rapidjson::Value& segment) {
     Style style;
 
@@ -37,39 +38,7 @@ Style GetSegmentStyle(rapidjson::Value& segment) {
     return style;
 }
 
-/*Overlay ReadOverlay(JsonDocument& json, const char* name) {
-    if(!json.doc.HasMember(name)) return Overlay(1, 1);
-
-    rapidjson::Value& lines = json.doc[name]["lines"];
-
-    // Set up overlay
-    Overlay overlay;
-    overlay.height = lines.Size();
-    overlay.lines.resize(overlay.height);
-
-    // Width of the overlay
-    uint64_t width = 0;
-
-    // Read lines
-    for(uint64_t i = 0; i < overlay.height; i++) {
-        rapidjson::Value& line = lines[i];
-
-        // Get segments in line and add them to the line in the overlay
-        for(uint64_t j = 0; j < line["segments"].Size(); j++) {
-            rapidjson::Value& segment = line["segments"][j];
-            overlay.lines[i].Add(segment["string"].GetString(), GetSegmentStyle(segment), segment["start"].GetInt());
-        }
-
-        // Update width by getting the size of the line
-        rapidjson::Value& last_seg = line["segments"][line["segments"].Size() - 1];
-        uint64_t len = last_seg["start"].GetInt() + last_seg["string"].GetStringLength();
-        if(len > width) width = len;
-    }
-
-    overlay.width = width;
-    return overlay;
-}*/
-
+// Create json object
 rapidjson::Value CreateColObj(const Color& col, rapidjson::Document& json) {
     rapidjson::Value color(rapidjson::kObjectType);
     rapidjson::Value r(col.r);
@@ -171,14 +140,11 @@ rapidjson::Value CreateLineArr(const std::vector<StyledString>& lines, rapidjson
     return json_lines;
 }
 
+// Load a line from json
 void GetLine(StyledSegmentArray& dest, rapidjson::Value& line) {
-    printf("bar\n");
     for(uint64_t i = 0; i < line["segments"].Size(); i++) {
-        printf("bar\n");
         const char* str = line["segments"][i]["string"].GetString();
-        printf("END\n");
         Style style = GetSegmentStyle(line["segments"][i]);
-        printf("END\n");
 
         uint64_t start = line["segments"][i]["start"].GetInt64();
 
@@ -186,6 +152,7 @@ void GetLine(StyledSegmentArray& dest, rapidjson::Value& line) {
     }
 }
 
+// Write this window to a json doc
 bool Window::WriteToJson(JsonDocument& json, const char* name, uint64_t name_c) {
     // Get data
     rapidjson::Value json_window_lines = CreateLineArr(lines, json.doc);
@@ -220,6 +187,7 @@ bool Window::WriteToJson(JsonDocument& json, const char* name, uint64_t name_c) 
     return true;
 }
 
+// Write this Overlay to a json doc
 bool Overlay::WriteToJson(JsonDocument& json, const char* name, uint64_t name_c) {
     rapidjson::Value json_lines = CreateLineArr(lines, json.doc);
 
@@ -231,32 +199,11 @@ bool Overlay::WriteToJson(JsonDocument& json, const char* name, uint64_t name_c)
     return true;
 }
 
+// Load a window from json
 bool Window::LoadFromJson(JsonDocument& json, const char* name) {
     rapidjson::Value& json_window = json.doc[name];
-    rapidjson::Value& json_overlay = json.doc[name]["overlay"];
 
-    printf("sus\n");
-
-    has_overlay = json_overlay.MemberCount() != 0;
-    overlay_enabled = json_window["overlay_enabled"].GetBool() && has_overlay;
-
-    Move(json_window["x"].GetInt64(), json_window["y"].GetInt64());
-    Resize(json_window["width"].GetUint64(), json_window["height"].GetUint64());
-
-    printf("sus\n");
-
-    for(uint64_t i = 0; i < height; i++) {
-        printf("sus\n");
-        GetLine(lines[i], json_window["lines"][i]);
-    }
-
-    printf("END\n");
-
-    if(has_overlay) {
-        overlay.LoadFromJson(json_overlay);
-    }
-
-    return true;
+    return LoadFromJson(json_window);
 }
 
 bool Window::LoadFromJson(rapidjson::Value& json_window) {
@@ -279,18 +226,11 @@ bool Window::LoadFromJson(rapidjson::Value& json_window) {
     return true;
 }
 
+// Load a overlay from json
 bool Overlay::LoadFromJson(JsonDocument& json, const char* name) {
-    rapidjson::Value& json_lines = json.doc[name]["lines"];
+    rapidjson::Value& json_overlay = json.doc[name];
 
-    height = json_lines.Size();
-    lines.resize(height);
-
-    for(uint64_t i = 0; i < height; i++) {
-        GetLine(lines[i], json_lines[i]);
-        if(width < lines[i].Len()) width = lines[i].Len();
-    }
-
-    return true;
+    return LoadFromJson(json_overlay);
 }
 
 bool Overlay::LoadFromJson(rapidjson::Value& json_overlay) {
@@ -307,6 +247,7 @@ bool Overlay::LoadFromJson(rapidjson::Value& json_overlay) {
     return true;
 }
 
+// JsonDocument
 JsonDocument::JsonDocument(const char* filepath) {
     // open file
     std::ifstream file;
