@@ -8,9 +8,9 @@ int main() {
     LibTesix::InitScreen();
 
     LibTesix::Style background;
-    background.BG(LibTesix::Color(50, 150, 50));
+    background.BG(LibTesix::Color(150, 50, 50));
 
-    LibTesix::JsonDocument json("/home/elliem/Dev/Programs/1st-Party/cpp/LibTesix/Examples/bouncing_box/window.json");
+    LibTesix::JsonDocument json("./Examples/bouncing_box/window.json");
     LibTesix::Window win(json, "window");
 
     Clear(background);
@@ -32,7 +32,7 @@ int main() {
 
         win.Move(win.GetX() + x_vel, win.GetY() + y_vel);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
         Clear(background);
     }
 
