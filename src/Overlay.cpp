@@ -32,7 +32,7 @@ void Overlay::Clear() {
     }
 }
 
-void Overlay::Box(uint64_t x, uint64_t y, uint64_t width, uint64_t height, Style style, const char* right, const char* left, const char* top,
+void Overlay::Box(uint64_t x, uint64_t y, uint64_t width, uint64_t height, const Style* style, const char* right, const char* left, const char* top,
     const char* bottom, const char* top_right, const char* top_left, const char* bottom_right, const char* bottom_left) {
     icu::UnicodeString top_str;
     top_str.append(top_right);
@@ -61,8 +61,8 @@ void Overlay::Box(uint64_t x, uint64_t y, uint64_t width, uint64_t height, Style
     lines[height - 1].Add(bottom_str, style, 0);
 }
 
-void Overlay::Box(Style style, const char* right, const char* left, const char* top, const char* bottom, const char* top_right, const char* top_left,
-    const char* bottom_right, const char* bottom_left) {
+void Overlay::Box(const Style* style, const char* right, const char* left, const char* top, const char* bottom, const char* top_right,
+    const char* top_left, const char* bottom_right, const char* bottom_left) {
     UpdateWidth();
     Box(0, 0, width, height, style, right, left, top, bottom, top_right, top_left, bottom_right, bottom_left);
 }

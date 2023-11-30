@@ -17,15 +17,15 @@ void ApplySegmentArray(StyledSegmentArray& arr, StyledString& str, uint64_t offs
 
 class Window {
   public:
-    Window(int64_t x, int64_t y, uint64_t width, uint64_t height, Style style = STANDARD_STYLE);
+    Window(int64_t x, int64_t y, uint64_t width, uint64_t height, const Style* style = style_allocator[0UL]);
     Window(JsonDocument& json, const char* name);
     Window(rapidjson::Value& json_window);
 
   public:
     void Draw(Style& state, bool should_update = true);
 
-    void Write(uint64_t col, uint64_t line, icu::UnicodeString& str, Style style);
-    void Write(uint64_t col, uint64_t line, const char* str, Style style);
+    void Write(uint64_t col, uint64_t line, icu::UnicodeString& str, const Style* style);
+    void Write(uint64_t col, uint64_t line, const char* str, const Style* style);
 
     void ApplyOverlay(Overlay& overlay);
     void ApplyOverlay();
@@ -34,7 +34,7 @@ class Window {
     void Move(int64_t x, int64_t y);
     void Resize(uint64_t width, uint64_t height);
 
-    void Clear(Style style);
+    void Clear(const Style* style);
 
     void UpdateRaw();
 
@@ -57,8 +57,8 @@ class Window {
 
     std::string raw;
 
-    Style raw_start_style;
-    Style raw_end_style;
+    const Style* raw_start_style;
+    const Style* raw_end_style;
 
     int64_t x;
     int64_t y;

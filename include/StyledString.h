@@ -12,8 +12,8 @@ namespace LibTesix {
 
 struct StyledString : public StyledSegmentArray {
   public:
-    StyledString(const icu::UnicodeString& base_string, Style style = STANDARD_STYLE);
-    StyledString(const char* base_string, Style style = STANDARD_STYLE);
+    StyledString(const icu::UnicodeString& base_string, const Style* style = style_allocator[0UL]);
+    StyledString(const char* base_string, const Style* style = style_allocator[0UL]);
 
     StyledString(const StyledSegmentArray& string);
     StyledString(const std::vector<StyledSegment>& string);
@@ -22,13 +22,13 @@ struct StyledString : public StyledSegmentArray {
 
   public:
   public:
-    void Insert(const icu::UnicodeString& str, Style style, uint64_t index);
-    void Insert(const char* str, Style style, uint64_t index);
-    void Append(const icu::UnicodeString& str, Style style);
-    void Append(const char* str, Style style);
+    void Insert(const icu::UnicodeString& str, const Style* style, uint64_t index);
+    void Insert(const char* str, const Style* style, uint64_t index);
+    void Append(const icu::UnicodeString& str, const Style* style);
+    void Append(const char* str, const Style* style);
     void Erase(uint64_t start, uint64_t end);
-    icu::UnicodeString Write(const icu::UnicodeString& str, Style style, uint64_t index);
-    icu::UnicodeString Write(const char* str, Style style, uint64_t index);
+    icu::UnicodeString Write(const icu::UnicodeString& str, const Style* style, uint64_t index);
+    icu::UnicodeString Write(const char* str, const Style* style, uint64_t index);
 
     StyledString Substr(uint64_t start, uint64_t end);
 
@@ -36,14 +36,14 @@ struct StyledString : public StyledSegmentArray {
 
     using StyledSegmentArray::Len;
 
-    void Clear(Style style = STANDARD_STYLE);
-    void ClearStyle(Style style = STANDARD_STYLE);
+    void Clear(const Style* style = style_allocator[0UL]);
+    void ClearStyle(const Style* style = style_allocator[0UL]);
 
     void UpdateRaw();
     std::string Raw(const Style& state, bool should_update = true);
 
-    Style StyleStart() const;
-    Style StyleEnd() const;
+    const Style* StyleStart() const;
+    const Style* StyleEnd() const;
 
     void Print(Style& state, bool should_update = true);
     using StyledSegmentArray::PrintDebug;

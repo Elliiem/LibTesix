@@ -5,12 +5,12 @@
 namespace LibTesix {
 
 // TODO update raw in constructors
-StyledString::StyledString(const icu::UnicodeString& base_string, Style style) {
+StyledString::StyledString(const icu::UnicodeString& base_string, const Style* style) {
     Append(base_string, style);
     UpdateRaw();
 }
 
-StyledString::StyledString(const char* base_string, Style style) {
+StyledString::StyledString(const char* base_string, const Style* style) {
     Append(base_string, style);
     UpdateRaw();
 }
@@ -26,11 +26,11 @@ StyledString::StyledString(const std::vector<StyledSegment>& string) {
 }
 
 StyledString::StyledString() {
-    Append("", STANDARD_STYLE);
+    Append("", style_allocator[0UL]);
     UpdateRaw();
 }
 
-void StyledString::Insert(const icu::UnicodeString& str, Style style, uint64_t index) {
+void StyledString::Insert(const icu::UnicodeString& str, const Style* style, uint64_t index) {
     if(index > Len()) throw std::runtime_error("Index " + std::to_string(index) + " is out of bounds! << StyledString::Insert)");
 
     uint64_t segment_index = GetSegmentIndex(index);
@@ -45,12 +45,12 @@ void StyledString::Insert(const icu::UnicodeString& str, Style style, uint64_t i
     UpdateSegmentStart(segment_index);
 }
 
-void StyledString::Insert(const char* str, Style style, uint64_t index) {
+void StyledString::Insert(const char* str, const Style* style, uint64_t index) {
     icu::UnicodeString uc_str(str);
     Insert(uc_str, style, index);
 }
 
-void StyledString::Append(const icu::UnicodeString& str, Style style) {
+void StyledString::Append(const icu::UnicodeString& str, const Style* style) {
     if(segments.size() == 1 && Len() == 0) {
         segments[0] = StyledSegment(str, style, 0);
     } else {
@@ -58,7 +58,7 @@ void StyledString::Append(const icu::UnicodeString& str, Style style) {
     }
 }
 
-void StyledString::Append(const char* str, Style style) {
+void StyledString::Append(const char* str, const Style* style) {
     icu::UnicodeString uc_str(str);
     Append(uc_str, style);
 }
@@ -71,7 +71,7 @@ void StyledString::Erase(uint64_t start, uint64_t end) {
     UpdateSegmentStart(start_segment_index);
 }
 
-icu::UnicodeString StyledString::Write(const icu::UnicodeString& str, Style style, uint64_t index) {
+icu::UnicodeString StyledString::Write(const icu::UnicodeString& str, const Style* style, uint64_t index) {
     if(index >= Len()) throw std::runtime_error("Index " + std::to_string(index) + " is out of bounds << StyledString::Write()");
 
     if(str.length() == 0) return icu::UnicodeString();
@@ -93,7 +93,7 @@ icu::UnicodeString StyledString::Write(const icu::UnicodeString& str, Style styl
     return overflow;
 }
 
-icu::UnicodeString StyledString::Write(const char* str, Style style, uint64_t index) {
+icu::UnicodeString StyledString::Write(const char* str, const Style* style, uint64_t index) {
     icu::UnicodeString uc_str(str);
     return Write(uc_str, style, index);
 }
@@ -147,18 +147,18 @@ void StyledString::Resize(uint64_t size) {
     } else {
         StyledSegmentArray::Erase(size, Len() - 1);
         if(segments.size() == 0) {
-            Append("", STANDARD_STYLE);
+            Append("", style_allocator[0UL]);
         }
     }
 }
 
-void StyledString::Clear(Style style) {
+void StyledString::Clear(const Style* style) {
     StyledSegmentArray::Clear();
 
     Append("", style);
 }
 
-void StyledString::ClearStyle(Style style) {
+void StyledString::ClearStyle(const Style* style) {
     icu::UnicodeString new_seg_str;
 
     for(StyledSegment segment : segments) {
@@ -173,13 +173,13 @@ void StyledString::ClearStyle(Style style) {
 void StyledString::UpdateRaw() {
     std::string new_raw;
 
-    Style state = segments[0].style;
+    Style state = *segments[0].style;
 
     for(StyledSegment segment : segments) {
-        new_raw.append(segment.style.GetEscapeCode(state));
+        new_raw.append(segment.style->GetEscapeCode(state));
         segment.str.toUTF8String(new_raw);
 
-        state = segment.style;
+        state = *segment.style;
     }
 
     raw = new_raw;
@@ -188,14 +188,14 @@ void StyledString::UpdateRaw() {
 std::string StyledString::Raw(const Style& state, bool should_update) {
     if(should_update) UpdateRaw();
 
-    return segments[0].style.GetEscapeCode(state) + raw;
+    return segments[0].style->GetEscapeCode(state) + raw;
 }
 
-Style StyledString::StyleStart() const {
+const Style* StyledString::StyleStart() const {
     return segments[0].style;
 }
 
-Style StyledString::StyleEnd() const {
+const Style* StyledString::StyleEnd() const {
     return segments.back().style;
 }
 
@@ -203,7 +203,7 @@ void StyledString::Print(Style& state, bool should_update) {
     printf(Raw(state).c_str());
     printf("\n");
 
-    state = StyleEnd();
+    state = *StyleEnd();
 }
 
 void StyledString::UpdateSegmentStart(uint64_t index) {

@@ -8,7 +8,7 @@
 
 namespace LibTesix {
 
-Window::Window(int64_t x, int64_t y, uint64_t width, uint64_t height, Style style) {
+Window::Window(int64_t x, int64_t y, uint64_t width, uint64_t height, const Style* style) {
     this->x = x;
     this->y = y;
     this->width = width;
@@ -29,7 +29,7 @@ Window::Window(rapidjson::Value& json_window) {
     LoadFromJson(json_window);
 }
 
-void Window::Write(uint64_t col, uint64_t line, icu::UnicodeString& str, Style style) {
+void Window::Write(uint64_t col, uint64_t line, icu::UnicodeString& str, const Style* style) {
     if(col >= width) throw std::runtime_error("x: " + std::to_string(x) + " is out of bounds! << Window::Print()");
     else if(line >= height)
         throw std::runtime_error("y: " + std::to_string(y) + " is out of bounds! << Window::Print()");
@@ -44,7 +44,7 @@ void Window::Write(uint64_t col, uint64_t line, icu::UnicodeString& str, Style s
     }
 }
 
-void Window::Write(uint64_t col, uint64_t line, const char* str, Style style) {
+void Window::Write(uint64_t col, uint64_t line, const char* str, const Style* style) {
     icu::UnicodeString uc_str(str);
 
     Write(col, line, uc_str, style);
@@ -66,8 +66,8 @@ void Window::UpdateRaw() {
         return;
     }
 
-    Style state = lines[y_visible.first].StyleStart();
-    raw_start_style = state;
+    Style state = *lines[y_visible.first].StyleStart();
+    raw_start_style = lines[y_visible.first].StyleStart();
 
     uint64_t clipped_x;
     clipped_x = x * (x > 0);
@@ -79,10 +79,11 @@ void Window::UpdateRaw() {
         if(overlay_enabled && i < overlay.height) ApplySegmentArray(overlay.lines[i], visible, x_visible.first);
 
         new_raw.append(visible.Raw(state, 0));
-        state = visible.StyleEnd();
+        state = *visible.StyleEnd();
+
+        raw_end_style = visible.StyleEnd();
     }
 
-    raw_end_style = state;
     raw = new_raw;
 }
 
@@ -91,10 +92,10 @@ void Window::Draw(Style& state, bool should_update) {
         UpdateRaw();
     }
 
-    printf(raw_start_style.GetEscapeCode(state).c_str());
+    printf(raw_start_style->GetEscapeCode(state).c_str());
     printf(raw.c_str());
 
-    state = raw_end_style;
+    state = *raw_end_style;
 }
 
 uint64_t Window::GetHeight() {
@@ -121,8 +122,6 @@ void Window::Move(int64_t x, int64_t y) {
 void Window::Resize(uint64_t width, uint64_t height) {
     lines.resize(height);
 
-    Style state;
-
     for(StyledString& str : lines) {
         str.Resize(width);
     }
@@ -145,7 +144,7 @@ void Window::RemoveOverlay() {
     overlay_enabled = false;
 }
 
-void Window::Clear(Style style) {
+void Window::Clear(const Style* style) {
     for(StyledString& str : lines) {
         str.Clear(style);
         str.Resize(width);

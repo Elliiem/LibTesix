@@ -8,18 +8,19 @@ int main() {
     LibTesix::InitScreen();
 
     LibTesix::Style background;
-    background.BG(LibTesix::Color(150, 50, 50));
+    background.BG(LibTesix::Color(50, 0, 50));
+    uint64_t background_i = LibTesix::style_allocator.Add(background, "background");
 
     LibTesix::JsonDocument json("./Examples/bouncing_box/window.json");
     LibTesix::Window win(json, "window");
 
-    Clear(background);
+    LibTesix::Clear(LibTesix::style_allocator[background_i]);
 
-    int32_t x_vel = 2;
-    int32_t y_vel = 1;
+    int64_t x_vel = 2;
+    int64_t y_vel = 1;
 
     while(true) {
-        win.Draw(LibTesix::state, true);
+        win.Draw(LibTesix::state);
         LibTesix::Update();
 
         if(win.GetX() + 1 >= LibTesix::GetTerminalWidth() - win.GetWidth() || win.GetX() <= 0) {
@@ -33,7 +34,7 @@ int main() {
         win.Move(win.GetX() + x_vel, win.GetY() + y_vel);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
-        Clear(background);
+        LibTesix::Clear(LibTesix::style_allocator[background_i]);
     }
 
     return 0;

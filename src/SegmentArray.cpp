@@ -4,13 +4,13 @@
 
 namespace LibTesix {
 
-StyledSegment::StyledSegment(const icu::UnicodeString& str, Style style, uint64_t start) {
+StyledSegment::StyledSegment(const icu::UnicodeString& str, const Style* style, uint64_t start) {
     this->str = icu::UnicodeString(str);
     this->style = style;
     this->start = start;
 }
 
-StyledSegment::StyledSegment(const char* str, Style style, uint64_t start) {
+StyledSegment::StyledSegment(const char* str, const Style* style, uint64_t start) {
     this->str = icu::UnicodeString(str);
     this->style = style;
     this->start = start;
@@ -19,7 +19,7 @@ StyledSegment::StyledSegment(const char* str, Style style, uint64_t start) {
 StyledSegment::StyledSegment() {
     str = icu::UnicodeString("");
 
-    style = STANDARD_STYLE;
+    style = style_allocator[0UL];
     start = 0;
 }
 
@@ -46,7 +46,7 @@ bool StyledSegmentArray::InSegment(uint64_t segment_index, uint64_t index) const
     return (index < segments[segment_index].start + segments[segment_index].Len()) && (index >= segments[segment_index].start);
 }
 
-void StyledSegmentArray::Append(const icu::UnicodeString& str, Style style) {
+void StyledSegmentArray::Append(const icu::UnicodeString& str, const Style* style) {
     uint64_t segment_start = 0;
 
     if(segments.size() > 0) {
@@ -56,12 +56,12 @@ void StyledSegmentArray::Append(const icu::UnicodeString& str, Style style) {
     segments.push_back(StyledSegment(str, style, segment_start));
 }
 
-void StyledSegmentArray::Append(const char* str, Style style) {
+void StyledSegmentArray::Append(const char* str, const Style* style) {
     icu::UnicodeString uc_str(str);
     Append(uc_str, style);
 }
 
-void StyledSegmentArray::Add(const icu::UnicodeString& str, const Style& style, uint64_t index) {
+void StyledSegmentArray::Add(const icu::UnicodeString& str, const Style* style, uint64_t index) {
     if(str.length() == 0) return;
 
     StyledSegment new_segment(str, style, index);
@@ -88,7 +88,7 @@ void StyledSegmentArray::Add(const icu::UnicodeString& str, const Style& style, 
     }
 }
 
-void StyledSegmentArray::Add(const char* str, const Style& style, uint64_t index) {
+void StyledSegmentArray::Add(const char* str, const Style* style, uint64_t index) {
     icu::UnicodeString uc_str(str);
     Add(uc_str, style, index);
 }

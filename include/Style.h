@@ -1,7 +1,10 @@
 #pragma once
 
 #include <cinttypes>
-#include <string>
+#include <cstring>
+#include <hash_map>
+#include <map>
+#include <sparsehash/dense_hash_map>
 #include <vector>
 
 namespace LibTesix {
@@ -10,7 +13,7 @@ struct Color {
     Color(uint64_t r, uint64_t g, uint64_t b);
     Color();
 
-    bool operator==(const Color& other);
+    bool operator==(const Color& other) const;
 
     uint64_t r;
     uint64_t g;
@@ -50,10 +53,10 @@ struct Style {
     Style* FG(Color val);
     Style* Color(ColorPair val);
 
-    bool operator[](States state) const;
+    bool GetMod(States state) const;
 
     // Returns the escape code sequence used in order to change from the supplied teminal state to this style
-    std::string GetEscapeCode(const Style& state);
+    std::string GetEscapeCode(const Style& state) const;
 
     void Reset();
 
@@ -66,7 +69,26 @@ struct Style {
     std::vector<bool> bool_state;
 };
 
-const Style STANDARD_STYLE;
-const Style NULL_STYLE(ColorPair(Color(-1, -1, -1), Color(-1, -1, -1)));
+class StyleAllocator {
+  public:
+    StyleAllocator();
+
+    const Style* operator[](const char* name);
+    const Style* operator[](uint64_t id);
+
+    uint64_t Add(const Style& style, const char* name);
+
+  private:
+    struct eqstr {
+        bool operator()(char const* a, char const* b) const {
+            return std::strcmp(a, b) < 0;
+        }
+    };
+
+    std::map<const char*, bool, eqstr> ids;
+    std::vector<Style> styles;
+};
+
+inline StyleAllocator style_allocator;
 
 } // namespace LibTesix

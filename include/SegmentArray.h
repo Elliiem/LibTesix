@@ -8,12 +8,12 @@
 namespace LibTesix {
 
 struct StyledSegment {
-    StyledSegment(const icu::UnicodeString& str, Style style, uint64_t start = 0);
-    StyledSegment(const char* str, Style style, uint64_t start);
+    StyledSegment(const icu::UnicodeString& str, const Style* style, uint64_t start = 0);
+    StyledSegment(const char* str, const Style* style, uint64_t start);
     StyledSegment();
     icu::UnicodeString str;
 
-    Style style;
+    const Style* style;
     uint64_t start;
 
     StyledSegment Split(uint64_t index);
@@ -28,11 +28,11 @@ struct StyledSegmentArray {
     std::vector<StyledSegment> segments;
 
   public:
-    void Append(const icu::UnicodeString& str, Style style);
-    void Append(const char* str, Style style);
+    void Append(const icu::UnicodeString& str, const Style* style);
+    void Append(const char* str, const Style* style);
 
-    void Add(const icu::UnicodeString& str, const Style& style, uint64_t index);
-    void Add(const char* str, const Style& style, uint64_t index);
+    void Add(const icu::UnicodeString& str, const Style* style, uint64_t index);
+    void Add(const char* str, const Style* style, uint64_t index);
 
     void Erase(uint64_t start, uint64_t end);
 
@@ -51,4 +51,5 @@ struct StyledSegmentArray {
     bool Clean(uint64_t index);
     bool HitsSegment(uint64_t start, uint64_t end) const;
 };
+
 } // namespace LibTesix

@@ -35,7 +35,7 @@ Color::Color() {
     b = 0;
 }
 
-bool Color::operator==(const Color& other) {
+bool Color::operator==(const Color& other) const {
     return (r == other.r) && (g == other.g) && (b == other.b);
 }
 
@@ -105,11 +105,11 @@ Style* Style::Color(ColorPair val) {
     return this;
 }
 
-bool Style::operator[](States state) const {
+bool Style::GetMod(States state) const {
     return bool_state[state];
 }
 
-std::string Style::GetEscapeCode(const Style& state) {
+std::string Style::GetEscapeCode(const Style& state) const {
     std::vector<std::pair<uint64_t, bool>> bool_changes(STATES_COUNT);
     uint64_t change_count = 0;
 
@@ -144,6 +144,31 @@ void Style::Reset() {
 
     bool_state.clear();
     bool_state.resize(STATES_COUNT, false);
+}
+
+StyleAllocator::StyleAllocator() {
+    // TODO Add standard styles
+}
+
+const Style* StyleAllocator::operator[](const char* name) {
+    uint64_t id = ids[name];
+    return &styles[id];
+}
+
+const Style* StyleAllocator::operator[](uint64_t id) {
+    return id < styles.size() ? &styles[id] : nullptr;
+}
+
+uint64_t StyleAllocator::Add(const Style& style, const char* name) {
+    if(!ids.contains(name)) {
+        printf("!contains\n");
+        ids[name] = styles.size();
+        styles.push_back(Style(style));
+        return styles.size() - 1;
+    } else {
+        printf("contains\n");
+        return ids[name];
+    }
 }
 
 } // namespace LibTesix

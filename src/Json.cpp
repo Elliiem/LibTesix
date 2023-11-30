@@ -22,20 +22,30 @@ void AddToDocument(rapidjson::Value& val, const char* key, uint64_t name_c, rapi
     }
 }
 
-// Get style of a segment from json
-Style GetSegmentStyle(rapidjson::Value& segment) {
+Style GetStyle(rapidjson::Value& json_style) {
     Style style;
 
-    style.FG(Color(segment["style"]["fg"]["r"].GetInt(), segment["style"]["fg"]["g"].GetInt(), segment["style"]["fg"]["b"].GetInt()));
-    style.BG(Color(segment["style"]["bg"]["r"].GetInt(), segment["style"]["bg"]["g"].GetInt(), segment["style"]["bg"]["b"].GetInt()));
-    style.Bold(segment["style"]["modifiers"]["thickness"].GetUint() == 1 ? true : false);
-    style.Faint(segment["style"]["modifiers"]["thickness"].GetUint() == 2 ? true : false);
-    style.Blinking(segment["style"]["modifiers"]["blinking"].GetBool());
-    style.Reverse(segment["style"]["modifiers"]["reverse"].GetBool());
-    style.Underlined(segment["style"]["modifiers"]["underlined"].GetBool());
-    style.Italic(segment["style"]["modifiers"]["italic"].GetBool());
+    style.FG(Color(json_style["fg"]["r"].GetInt(), json_style["fg"]["g"].GetInt(), json_style["fg"]["b"].GetInt()));
+    style.BG(Color(json_style["bg"]["r"].GetInt(), json_style["bg"]["g"].GetInt(), json_style["bg"]["b"].GetInt()));
+    style.Bold(json_style["modifiers"]["thickness"].GetUint() == 1 ? true : false);
+    style.Faint(json_style["modifiers"]["thickness"].GetUint() == 2 ? true : false);
+    style.Blinking(json_style["modifiers"]["blinking"].GetBool());
+    style.Reverse(json_style["modifiers"]["reverse"].GetBool());
+    style.Underlined(json_style["modifiers"]["underlined"].GetBool());
+    style.Italic(json_style["modifiers"]["italic"].GetBool());
 
     return style;
+}
+
+void AllocStyles(rapidjson::Value& json_obj) {
+    // TODO Add type guards
+    rapidjson::Value& json_styles = json_obj["styles"];
+
+    for(uint64_t i = 0; i < json_styles.Size(); i++) {
+        Style style = GetStyle(json_styles[i]);
+
+        style_allocator.Add(style, json_styles[i]["name"].GetString());
+    }
 }
 
 // Create json object
@@ -52,24 +62,24 @@ rapidjson::Value CreateColObj(const Color& col, rapidjson::Document& json) {
     return color;
 };
 
-rapidjson::Value CreateModifierObj(const Style& style, rapidjson::Document& json) {
+rapidjson::Value CreateModifierObj(const Style* style, rapidjson::Document& json) {
     rapidjson::Value json_modifiers(rapidjson::kObjectType);
-    json_modifiers.AddMember("thickness", style[Style::BOLD] + style[Style::FAINT] * 2, json.GetAllocator());
-    json_modifiers.AddMember("blinking", style[Style::BLINKING], json.GetAllocator());
-    json_modifiers.AddMember("reverse", style[Style::REVERSE], json.GetAllocator());
-    json_modifiers.AddMember("underlined", style[Style::UNDERLINED], json.GetAllocator());
-    json_modifiers.AddMember("italic", style[Style::ITALIC], json.GetAllocator());
+    json_modifiers.AddMember("thickness", style->GetMod(Style::BOLD) + style->GetMod(Style::FAINT) * 2, json.GetAllocator());
+    json_modifiers.AddMember("blinking", style->GetMod(Style::BLINKING), json.GetAllocator());
+    json_modifiers.AddMember("reverse", style->GetMod(Style::REVERSE), json.GetAllocator());
+    json_modifiers.AddMember("underlined", style->GetMod(Style::UNDERLINED), json.GetAllocator());
+    json_modifiers.AddMember("italic", style->GetMod(Style::ITALIC), json.GetAllocator());
 
     return json_modifiers;
 }
 
-rapidjson::Value CreateStyleObj(const Style& style, rapidjson::Document& json) {
+rapidjson::Value CreateStyleObj(const Style* style, rapidjson::Document& json) {
     rapidjson::Value json_style(rapidjson::kObjectType);
 
-    rapidjson::Value json_fg = CreateColObj(style.col.fg, json);
+    rapidjson::Value json_fg = CreateColObj(style->col.fg, json);
     json_style.AddMember("fg", json_fg, json.GetAllocator());
 
-    rapidjson::Value json_bg = CreateColObj(style.col.bg, json);
+    rapidjson::Value json_bg = CreateColObj(style->col.bg, json);
     json_style.AddMember("bg", json_bg, json.GetAllocator());
 
     rapidjson::Value json_modifiers = CreateModifierObj(style, json);
@@ -144,7 +154,7 @@ rapidjson::Value CreateLineArr(const std::vector<StyledString>& lines, rapidjson
 void GetLine(StyledSegmentArray& dest, rapidjson::Value& line) {
     for(uint64_t i = 0; i < line["segments"].Size(); i++) {
         const char* str = line["segments"][i]["string"].GetString();
-        Style style = GetSegmentStyle(line["segments"][i]);
+        const Style* style = style_allocator[line["segments"][i]["style"].GetString()];
 
         uint64_t start = line["segments"][i]["start"].GetInt64();
 
@@ -208,6 +218,8 @@ bool Window::LoadFromJson(JsonDocument& json, const char* name) {
 
 bool Window::LoadFromJson(rapidjson::Value& json_window) {
     rapidjson::Value& json_overlay = json_window["overlay"];
+
+    AllocStyles(json_window);
 
     has_overlay = json_overlay.MemberCount() != 0;
     overlay_enabled = json_window["overlay_enabled"].GetBool() && has_overlay;
