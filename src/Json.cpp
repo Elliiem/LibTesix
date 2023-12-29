@@ -8,259 +8,88 @@
 
 namespace LibTesix {
 
-// Adds a object to a key
-void AddToDocument(rapidjson::Value& val, const char* key, uint64_t name_c, rapidjson::Document& json) {
-    rapidjson::Value json_key(rapidjson::kStringType);
-    json_key.SetString(key, name_c, json.GetAllocator());
+Color ReadColor(rapidjson::Value& json_color) {
+    Color color;
 
-    if(!json.HasMember(key)) {
-        json.AddMember(json_key, val, json.GetAllocator());
-    } else {
-        json.RemoveMember(key);
+    uint64_t r = json_color.HasMember("r") ? json_color["r"].GetUint64() : 0;
+    uint64_t g = json_color.HasMember("r") ? json_color["g"].GetUint64() : 0;
+    uint64_t b = json_color.HasMember("r") ? json_color["b"].GetUint64() : 0;
 
-        json.AddMember(json_key, val, json.GetAllocator());
-    }
+    color.r = r;
+    color.g = g;
+    color.b = b;
+
+    return color;
 }
 
-Style GetStyle(rapidjson::Value& json_style) {
-    Style style;
+enum class Thickness { FAINT = 0, NORMAL = 1, BOLD = 2 };
 
-    style.FG(Color(json_style["fg"]["r"].GetInt(), json_style["fg"]["g"].GetInt(), json_style["fg"]["b"].GetInt()));
-    style.BG(Color(json_style["bg"]["r"].GetInt(), json_style["bg"]["g"].GetInt(), json_style["bg"]["b"].GetInt()));
-    style.Bold(json_style["modifiers"]["thickness"].GetUint() == 1 ? true : false);
-    style.Faint(json_style["modifiers"]["thickness"].GetUint() == 2 ? true : false);
-    style.Blinking(json_style["modifiers"]["blinking"].GetBool());
-    style.Reverse(json_style["modifiers"]["reverse"].GetBool());
-    style.Underlined(json_style["modifiers"]["underlined"].GetBool());
-    style.Italic(json_style["modifiers"]["italic"].GetBool());
+Style ReadStyle(rapidjson::Value& json_styles, const std::string& name) {
+    rapidjson::Value& json_style = json_styles[name.c_str()];
+
+    Style style(name);
+
+    Color fg = json_style.HasMember("fg") ? ReadColor(json_style["fg"]) : Color();
+    Color bg = json_style.HasMember("bg") ? ReadColor(json_style["bg"]) : Color();
+
+    style.FG(fg);
+    style.BG(bg);
+
+    if(!json_style.HasMember("modifiers")) return style;
+
+    uint64_t thickness = json_style.HasMember("thickness") ? json_style["thickness"].GetUint64() : 0;
+    switch(static_cast<Thickness>(thickness)) {
+        case Thickness::FAINT:
+            style.Faint(true);
+            break;
+        case Thickness::BOLD:
+            style.Bold(true);
+            break;
+    }
+
+    style.Blinking(json_style.HasMember("blinking") ? json_style["modifiers"]["blinking"].GetBool() : false);
+    style.Reverse(json_style.HasMember("reverse") ? json_style["modifiers"]["reverse"].GetBool() : false);
+    style.Underlined(json_style.HasMember("underlined") ? json_style["modifiers"]["underlined"].GetBool() : false);
+    style.Italic(json_style.HasMember("italic") ? json_style["modifiers"]["italic"].GetBool() : false);
 
     return style;
 }
 
-void AllocStyles(rapidjson::Value& json_obj) {
-    // TODO Add type guards
-    rapidjson::Value& json_styles = json_obj["styles"];
-
-    for(uint64_t i = 0; i < json_styles.Size(); i++) {
-        Style style = GetStyle(json_styles[i]);
-
-        style_allocator.Add(style, json_styles[i]["name"].GetString());
+void AllocStyles(rapidjson::Value& json_styles) {
+    for(rapidjson::Value::ConstMemberIterator iter = json_styles.MemberBegin(); iter != json_styles.MemberEnd(); iter++) {
+        Style style = ReadStyle(json_styles, iter->name.GetString());
+        style_allocator.Add(style);
     }
 }
 
-// Create json object
-rapidjson::Value CreateColObj(const Color& col, rapidjson::Document& json) {
-    rapidjson::Value color(rapidjson::kObjectType);
-    rapidjson::Value r(col.r);
-    rapidjson::Value g(col.g);
-    rapidjson::Value b(col.b);
+const Style* GetStylePointer(const std::string& name) {
+    const Style* style_p = style_allocator[name];
 
-    color.AddMember("r", r, json.GetAllocator());
-    color.AddMember("g", g, json.GetAllocator());
-    color.AddMember("b", b, json.GetAllocator());
+    if(style_p == nullptr) return STANDARD_STYLE;
 
-    return color;
-};
-
-rapidjson::Value CreateModifierObj(const Style* style, rapidjson::Document& json) {
-    rapidjson::Value json_modifiers(rapidjson::kObjectType);
-    json_modifiers.AddMember("thickness", style->GetMod(Style::BOLD) + style->GetMod(Style::FAINT) * 2, json.GetAllocator());
-    json_modifiers.AddMember("blinking", style->GetMod(Style::BLINKING), json.GetAllocator());
-    json_modifiers.AddMember("reverse", style->GetMod(Style::REVERSE), json.GetAllocator());
-    json_modifiers.AddMember("underlined", style->GetMod(Style::UNDERLINED), json.GetAllocator());
-    json_modifiers.AddMember("italic", style->GetMod(Style::ITALIC), json.GetAllocator());
-
-    return json_modifiers;
+    return style_p;
 }
 
-rapidjson::Value CreateStyleObj(const Style* style, rapidjson::Document& json) {
-    rapidjson::Value json_style(rapidjson::kObjectType);
+StyledSegmentArray ReadSegmentArray(rapidjson::Value& json_arr) {
+    StyledSegmentArray arr;
 
-    rapidjson::Value json_fg = CreateColObj(style->col.fg, json);
-    json_style.AddMember("fg", json_fg, json.GetAllocator());
+    if(!json_arr.HasMember("segments")) return arr;
 
-    rapidjson::Value json_bg = CreateColObj(style->col.bg, json);
-    json_style.AddMember("bg", json_bg, json.GetAllocator());
+    rapidjson::Value& json_segments = json_arr["segments"];
 
-    rapidjson::Value json_modifiers = CreateModifierObj(style, json);
-    json_style.AddMember("modifiers", json_modifiers, json.GetAllocator());
+    for(uint64_t i = 0; i < json_segments.Size(); i++) {
+        std::string str = json_segments[i].HasMember("string") ? json_segments[i]["string"].GetString() : "";
+        const Style* style = GetStylePointer(json_segments[i].HasMember("style") ? json_segments[i]["style"].GetString() : "");
+        uint64_t start = json_segments[i].HasMember("start") ? json_segments[i]["start"].GetUint64() : 0;
 
-    return json_style;
-}
-
-rapidjson::Value CreateSegmentObj(const StyledSegment& segment, rapidjson::Document& json) {
-    rapidjson::Value json_segment(rapidjson::kObjectType);
-
-    // Add start to json_segment
-    json_segment.AddMember("start", segment.start, json.GetAllocator());
-
-    // Add string
-    rapidjson::Value json_string(rapidjson::kStringType);
-
-    std::string segment_utf8;
-    segment.str.toUTF8String(segment_utf8);
-
-    json_string.SetString(segment_utf8.c_str(), segment_utf8.length(), json.GetAllocator());
-    json_segment.AddMember("string", json_string, json.GetAllocator());
-
-    // Add style
-    rapidjson::Value json_style = CreateStyleObj(segment.style, json);
-    json_segment.AddMember("style", json_style, json.GetAllocator());
-
-    return json_segment;
-}
-
-// Creates the line array from a vector of lines
-rapidjson::Value CreateLineArr(const std::vector<StyledSegmentArray>& lines, rapidjson::Document& json) {
-    rapidjson::Value json_lines(rapidjson::kArrayType);
-
-    for(const StyledSegmentArray& array : lines) {
-        rapidjson::Value json_line(rapidjson::kObjectType);
-
-        rapidjson::Value json_segments(rapidjson::kArrayType);
-
-        for(const StyledSegment& segment : array.segments) {
-            json_segments.PushBack(CreateSegmentObj(segment, json), json.GetAllocator());
-        }
-
-        json_line.AddMember("segments", json_segments, json.GetAllocator());
-        json_lines.PushBack(json_line, json.GetAllocator());
+        // TODO Update when changing const char* to std::string
+        arr.Add(str.c_str(), style, start);
     }
 
-    return json_lines;
+    return arr;
 }
 
-rapidjson::Value CreateLineArr(const std::vector<StyledString>& lines, rapidjson::Document& json) {
-    rapidjson::Value json_lines(rapidjson::kArrayType);
-
-    for(const StyledSegmentArray& array : lines) {
-        rapidjson::Value json_line(rapidjson::kObjectType);
-
-        rapidjson::Value json_segments(rapidjson::kArrayType);
-
-        for(const StyledSegment& segment : array.segments) {
-            json_segments.PushBack(CreateSegmentObj(segment, json), json.GetAllocator());
-        }
-
-        json_line.AddMember("segments", json_segments, json.GetAllocator());
-
-        json_lines.PushBack(json_line, json.GetAllocator());
-    }
-
-    return json_lines;
-}
-
-// Load a line from json
-void GetLine(StyledSegmentArray& dest, rapidjson::Value& line) {
-    for(uint64_t i = 0; i < line["segments"].Size(); i++) {
-        const char* str = line["segments"][i]["string"].GetString();
-        const Style* style = style_allocator[line["segments"][i]["style"].GetString()];
-
-        uint64_t start = line["segments"][i]["start"].GetInt64();
-
-        dest.Add(str, style, start);
-    }
-}
-
-// Write this window to a json doc
-bool Window::WriteToJson(JsonDocument& json, const char* name, uint64_t name_c) {
-    // Get data
-    rapidjson::Value json_window_lines = CreateLineArr(lines, json.doc);
-    rapidjson::Value json_overlay_lines;
-
-    if(has_overlay) {
-        json_overlay_lines = CreateLineArr(overlay.lines, json.doc);
-    }
-
-    // Add to Object
-    rapidjson::Value json_window(rapidjson::kObjectType);
-
-    json_window.AddMember("x", x, json.doc.GetAllocator());
-    json_window.AddMember("y", y, json.doc.GetAllocator());
-    json_window.AddMember("width", width, json.doc.GetAllocator());
-    json_window.AddMember("height", height, json.doc.GetAllocator());
-    json_window.AddMember("lines", json_window_lines, json.doc.GetAllocator());
-
-    json_window.AddMember("overlay_enabled", overlay_enabled, json.doc.GetAllocator());
-
-    rapidjson::Value json_overlay(rapidjson::kObjectType);
-
-    if(has_overlay) {
-        json_overlay.AddMember("lines", json_overlay_lines, json.doc.GetAllocator());
-    }
-
-    json_window.AddMember("overlay", json_overlay, json.doc.GetAllocator());
-
-    // Add to doc
-    AddToDocument(json_window, name, name_c, json.doc);
-
-    return true;
-}
-
-// Write this Overlay to a json doc
-bool Overlay::WriteToJson(JsonDocument& json, const char* name, uint64_t name_c) {
-    rapidjson::Value json_lines = CreateLineArr(lines, json.doc);
-
-    rapidjson::Value json_overlay(rapidjson::kObjectType);
-    json_overlay.AddMember("lines", json_lines, json.doc.GetAllocator());
-
-    AddToDocument(json_overlay, name, name_c, json.doc);
-
-    return true;
-}
-
-// Load a window from json
-bool Window::LoadFromJson(JsonDocument& json, const char* name) {
-    rapidjson::Value& json_window = json.doc[name];
-
-    return LoadFromJson(json_window);
-}
-
-bool Window::LoadFromJson(rapidjson::Value& json_window) {
-    rapidjson::Value& json_overlay = json_window["overlay"];
-
-    AllocStyles(json_window);
-
-    has_overlay = json_overlay.MemberCount() != 0;
-    overlay_enabled = json_window["overlay_enabled"].GetBool() && has_overlay;
-
-    Move(json_window["x"].GetInt64(), json_window["y"].GetInt64());
-    Resize(json_window["width"].GetUint64(), json_window["height"].GetUint64());
-
-    for(uint64_t i = 0; i < height; i++) {
-        GetLine(lines[i], json_window["lines"][i]);
-    }
-
-    if(has_overlay) {
-        overlay.LoadFromJson(json_overlay);
-    }
-
-    return true;
-}
-
-// Load a overlay from json
-bool Overlay::LoadFromJson(JsonDocument& json, const char* name) {
-    rapidjson::Value& json_overlay = json.doc[name];
-
-    return LoadFromJson(json_overlay);
-}
-
-bool Overlay::LoadFromJson(rapidjson::Value& json_overlay) {
-    rapidjson::Value& json_lines = json_overlay["lines"];
-
-    height = json_lines.Size();
-    lines.resize(height);
-
-    for(uint64_t i = 0; i < height; i++) {
-        GetLine(lines[i], json_lines[i]);
-        if(width < lines[i].Len()) width = lines[i].Len();
-    }
-
-    return true;
-}
-
-// JsonDocument
-JsonDocument::JsonDocument(const char* filepath) {
+JsonDocument::JsonDocument(const std::string& filepath) {
     // open file
     std::ifstream file;
     file.open(filepath);
@@ -275,17 +104,68 @@ JsonDocument::JsonDocument(const char* filepath) {
 
     file.close();
     this->filepath = filepath;
+
+    if(doc.HasMember("styles")) {
+        rapidjson::Value& styles = doc["styles"];
+        AllocStyles(styles);
+    }
 }
 
-void JsonDocument::Save() {
-    rapidjson::StringBuffer buffer;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-    doc.Accept(writer);
+bool Window::WriteToJson(JsonDocument& json, const std::string& name) {
+}
 
-    std::ofstream file;
-    file.open(filepath, std::ios::out);
-    file.write(buffer.GetString(), buffer.GetSize());
-    file.close();
+bool Window::LoadFromJson(JsonDocument& json, const std::string& name) {
+    if(!json.doc.HasMember("objects") ? json.doc["objects"].HasMember(name.c_str()) : false) return false;
+    if(!json.doc["objects"][name.c_str()].HasMember("type") ? json.doc["objects"][name.c_str()]["type"].GetString() == "window" : false) return false;
+
+    return LoadFromJson(json, json.doc["objects"][name.c_str()]);
+}
+
+bool Window::LoadFromJson(JsonDocument& json, rapidjson::Value& json_window) {
+    x = json_window.HasMember("x") ? json_window["x"].GetUint64() : 0;
+    y = json_window.HasMember("y") ? json_window["y"].GetUint64() : 0;
+    width = json_window.HasMember("width") ? json_window["width"].GetUint64() : 0;
+    height = json_window.HasMember("height") ? json_window["height"].GetUint64() : 0;
+
+    if(json_window.HasMember("overlay_enabled") ? json_window["overlay_enabled"].GetBool() : false) {
+        overlay.LoadFromJson(json, json_window.HasMember("overlay") ? json_window["overlay"].GetString() : "");
+        overlay_enabled = true;
+        has_overlay = true;
+    }
+
+    if(!json_window.HasMember("lines")) return false;
+    for(uint64_t i = 0; i < json_window["lines"].Size(); i++) {
+        // TODO Make StyledString Loader
+        lines.push_back(ReadSegmentArray(json_window["lines"][i]));
+    }
+}
+
+bool Overlay::WriteToJson(JsonDocument& json, const std::string& name) {
+}
+
+bool Overlay::LoadFromJson(JsonDocument& json, const std::string& name) {
+    if(!json.doc.HasMember("objects") ? json.doc["objects"].HasMember(name.c_str()) : false) return false;
+    if(!json.doc["objects"][name.c_str()].HasMember("type") ? json.doc["objects"][name.c_str()]["type"].GetString() == "overlay" : false)
+        return false;
+
+    return LoadFromJson(json.doc["objects"][name.c_str()]);
+}
+
+bool Overlay::LoadFromJson(rapidjson::Value& json_overlay) {
+    if(!json_overlay.HasMember("lines")) return false;
+
+    height = json_overlay["lines"].Size();
+
+    uint64_t width_c = 0;
+
+    for(uint64_t i = 0; i < json_overlay["lines"].Size(); i++) {
+        lines.push_back(ReadSegmentArray(json_overlay["lines"][i]));
+        width_c = width_c < lines.back().Len() ? lines.back().Len() : width_c;
+    }
+
+    width = width_c;
+
+    return true;
 }
 
 } // namespace LibTesix

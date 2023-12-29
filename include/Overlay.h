@@ -30,8 +30,8 @@ struct Overlay {
 
     void UpdateWidth();
 
-    bool WriteToJson(JsonDocument& json, const char* name, uint64_t name_c);
-    bool LoadFromJson(JsonDocument& json, const char* name);
+    bool WriteToJson(JsonDocument& json, const std::string& name);
+    bool LoadFromJson(JsonDocument& json, const std::string& name);
     bool LoadFromJson(rapidjson::Value& json_overlay);
 };
 

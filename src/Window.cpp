@@ -25,8 +25,8 @@ Window::Window(JsonDocument& json, const char* name) {
     LoadFromJson(json, name);
 }
 
-Window::Window(rapidjson::Value& json_window) {
-    LoadFromJson(json_window);
+Window::Window(JsonDocument& json, rapidjson::Value& json_window) {
+    LoadFromJson(json, json_window);
 }
 
 void Window::Write(uint64_t col, uint64_t line, icu::UnicodeString& str, const Style* style) {

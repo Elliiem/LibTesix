@@ -19,7 +19,7 @@ class Window {
   public:
     Window(int64_t x, int64_t y, uint64_t width, uint64_t height, const Style* style = style_allocator[0UL]);
     Window(JsonDocument& json, const char* name);
-    Window(rapidjson::Value& json_window);
+    Window(JsonDocument& json, rapidjson::Value& json_window);
 
   public:
     void Draw(Style& state, bool should_update = true);
@@ -44,9 +44,9 @@ class Window {
     int64_t GetX();
     int64_t GetY();
 
-    bool WriteToJson(JsonDocument& json, const char* name, uint64_t name_c);
-    bool LoadFromJson(JsonDocument& json, const char* name);
-    bool LoadFromJson(rapidjson::Value& json_window);
+    bool WriteToJson(JsonDocument& json, const std::string& name);
+    bool LoadFromJson(JsonDocument& json, const std::string& name);
+    bool LoadFromJson(JsonDocument& json, rapidjson::Value& json_window);
 
   private:
     std::vector<StyledString> lines;

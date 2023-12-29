@@ -1,10 +1,10 @@
 #pragma once
 
+#include <bitset>
 #include <cinttypes>
 #include <cstring>
-#include <hash_map>
 #include <map>
-#include <sparsehash/dense_hash_map>
+#include <memory>
 #include <vector>
 
 namespace LibTesix {
@@ -36,11 +36,13 @@ struct ColorPair {
 const ColorPair STANDARD_COLORPAIR(STANDARD_FG, STANDARD_BG);
 
 struct Style {
+    friend class StyleAllocator;
+
     // The indicies of modifiers in LibTesix::Style::bool_state
     enum States { BOLD, FAINT, BLINKING, REVERSE, UNDERLINED, ITALIC, STATES_COUNT };
 
-    Style();
-    Style(ColorPair col);
+    Style(const std::string& name);
+    Style(const std::string& name, ColorPair col);
 
     // Setters for modifiers
     Style* Bold(bool val);
@@ -64,31 +66,29 @@ struct Style {
     ColorPair col;
 
   private:
+    Style();
+
     //  States of modifiers eg. bold, italic or blinking text
     //  these modifiers are stored in this vector at the values in the enum States, defined in the Style source file
-    std::vector<bool> bool_state;
+    std::bitset<STATES_COUNT> modifiers;
+    std::string name;
 };
 
 class StyleAllocator {
   public:
     StyleAllocator();
 
-    const Style* operator[](const char* name);
+    const Style* operator[](const std::string& name);
     const Style* operator[](uint64_t id);
 
-    uint64_t Add(const Style& style, const char* name);
+    const Style* Add(const Style& style);
 
   private:
-    struct eqstr {
-        bool operator()(char const* a, char const* b) const {
-            return std::strcmp(a, b) < 0;
-        }
-    };
-
-    std::map<const char*, bool, eqstr> ids;
-    std::vector<Style> styles;
+    std::map<std::string, uint64_t> ids;
+    std::vector<std::unique_ptr<const Style>> styles;
 };
 
 inline StyleAllocator style_allocator;
+inline const Style* STANDARD_STYLE = style_allocator[""];
 
 } // namespace LibTesix

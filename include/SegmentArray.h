@@ -25,6 +25,7 @@ struct StyledSegmentArray {
     StyledSegmentArray();
 
   public:
+    // TODO Heap Allocate
     std::vector<StyledSegment> segments;
 
   public:

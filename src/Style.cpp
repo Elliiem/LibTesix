@@ -13,14 +13,14 @@ const std::vector<std::string> ESCAPE_CODES = {
     "\033[1m",
     "\033[22m",
     "\033[2m",
-    "\033[23m",
-    "\033[3m",
-    "\033[24m",
-    "\033[4m",
     "\033[25m",
     "\033[5m",
     "\033[27m",
     "\033[7m",
+    "\033[24m",
+    "\033[4m",
+    "\033[23m",
+    "\033[3m",
 };
 
 Color::Color(uint64_t r, uint64_t g, uint64_t b) {
@@ -50,43 +50,47 @@ ColorPair::ColorPair() {
 }
 
 Style::Style() {
-    bool_state.resize(STATES_COUNT, false);
+    name = "";
 }
 
-Style::Style(ColorPair col) {
+Style::Style(const std::string& name) {
+    this->name = name;
+}
+
+Style::Style(const std::string& name, ColorPair col) {
+    this->name = name;
     this->col = col;
-    bool_state.resize(STATES_COUNT, false);
 }
 
 Style* Style::Bold(bool val) {
-    if(bool_state[FAINT] && val) bool_state[FAINT] = false;
-    bool_state[BOLD] = val;
+    if(modifiers[FAINT] && val) modifiers[FAINT] = false;
+    modifiers[BOLD] = val;
     return this;
 }
 
 Style* Style::Faint(bool val) {
-    if(bool_state[BOLD] && val) bool_state[BOLD] = false;
-    bool_state[FAINT] = val;
+    if(modifiers[BOLD] && val) modifiers[BOLD] = false;
+    modifiers[FAINT] = val;
     return this;
 }
 
 Style* Style::Blinking(bool val) {
-    bool_state[BLINKING] = val;
+    modifiers[BLINKING] = val;
     return this;
 }
 
 Style* Style::Reverse(bool val) {
-    bool_state[REVERSE] = val;
+    modifiers[REVERSE] = val;
     return this;
 }
 
 Style* Style::Underlined(bool val) {
-    bool_state[UNDERLINED] = val;
+    modifiers[UNDERLINED] = val;
     return this;
 }
 
 Style* Style::Italic(bool val) {
-    bool_state[ITALIC] = val;
+    modifiers[ITALIC] = val;
     return this;
 }
 
@@ -106,21 +110,17 @@ Style* Style::Color(ColorPair val) {
 }
 
 bool Style::GetMod(States state) const {
-    return bool_state[state];
+    return modifiers[state];
 }
 
 std::string Style::GetEscapeCode(const Style& state) const {
     std::vector<std::pair<uint64_t, bool>> bool_changes(STATES_COUNT);
-    uint64_t change_count = 0;
 
-    for(uint64_t i = 0; i < STATES_COUNT; i++) {
-        if(bool_state[i] != state.bool_state[i]) {
-            bool_changes[change_count] = std::pair<uint64_t, bool>(i, bool_state[i]);
-            change_count++;
+    for(int64_t i = 0; i < STATES_COUNT; i++) {
+        if(modifiers[i] != state.GetMod(static_cast<States>(i))) {
+            bool_changes.emplace_back(i, modifiers[i]);
         }
     }
-
-    bool_changes.resize(change_count);
 
     std::string ret;
 
@@ -142,32 +142,36 @@ std::string Style::GetEscapeCode(const Style& state) const {
 void Style::Reset() {
     col = STANDARD_COLORPAIR;
 
-    bool_state.clear();
-    bool_state.resize(STATES_COUNT, false);
+    modifiers.reset();
 }
 
 StyleAllocator::StyleAllocator() {
-    // TODO Add standard styles
+    ids[""] = 0;
+    styles.push_back(std::make_unique<const Style>(""));
 }
 
-const Style* StyleAllocator::operator[](const char* name) {
-    uint64_t id = ids[name];
-    return &styles[id];
+const Style* StyleAllocator::operator[](const std::string& name) {
+    if(ids.contains(name)) {
+        uint64_t id = ids[name];
+        return styles[id].get();
+    }
+
+    return nullptr;
 }
 
 const Style* StyleAllocator::operator[](uint64_t id) {
-    return id < styles.size() ? &styles[id] : nullptr;
+    return (id < styles.size()) ? styles[id].get() : nullptr;
 }
 
-uint64_t StyleAllocator::Add(const Style& style, const char* name) {
-    if(!ids.contains(name)) {
-        printf("!contains\n");
-        ids[name] = styles.size();
-        styles.push_back(Style(style));
-        return styles.size() - 1;
+const Style* StyleAllocator::Add(const Style& style) {
+    if(!ids.contains(style.name)) {
+        ids[style.name] = styles.size();
+
+        styles.push_back(std::make_unique<const Style>(style));
+
+        return styles.back().get();
     } else {
-        printf("contains\n");
-        return ids[name];
+        return (*this)[style.name];
     }
 }
 

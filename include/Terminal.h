@@ -11,7 +11,7 @@ static const int STDIN = 0;
 
 namespace LibTesix {
 
-inline Style state(ColorPair(Color(-1, -1, -1), Color(-1, -1, -1)));
+inline Style state("state", ColorPair(Color(-1, -1, -1), Color(-1, -1, -1)));
 
 int InitScreen();
 
