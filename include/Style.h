@@ -89,6 +89,6 @@ class StyleAllocator {
 };
 
 inline StyleAllocator style_allocator;
-inline const Style* STANDARD_STYLE = style_allocator[""];
+inline const Style* STANDARD_STYLE = style_allocator["__default"];
 
 } // namespace LibTesix

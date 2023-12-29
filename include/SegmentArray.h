@@ -16,7 +16,7 @@ struct StyledSegment {
     const Style* style;
     uint64_t start;
 
-    StyledSegment Split(uint64_t index);
+    std::shared_ptr<StyledSegment> Split(uint64_t index);
     uint64_t Len() const;
 };
 
@@ -25,8 +25,7 @@ struct StyledSegmentArray {
     StyledSegmentArray();
 
   public:
-    // TODO Heap Allocate
-    std::vector<StyledSegment> segments;
+    std::vector<std::shared_ptr<StyledSegment>> segments;
 
   public:
     void Append(const icu::UnicodeString& str, const Style* style);
@@ -45,7 +44,7 @@ struct StyledSegmentArray {
 
   protected:
     uint64_t GetSegmentIndex(uint64_t index) const;
-    void InsertSegment(StyledSegment segment, uint64_t index);
+    void InsertSegment(std::shared_ptr<StyledSegment> segment, uint64_t index);
 
   private:
     bool InSegment(uint64_t segment_index, uint64_t index) const;

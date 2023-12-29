@@ -146,8 +146,8 @@ void Style::Reset() {
 }
 
 StyleAllocator::StyleAllocator() {
-    ids[""] = 0;
-    styles.push_back(std::make_unique<const Style>(""));
+    ids["__default"] = 0;
+    styles.push_back(std::make_unique<const Style>("__default"));
 }
 
 const Style* StyleAllocator::operator[](const std::string& name) {

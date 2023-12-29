@@ -23,16 +23,14 @@ StyledSegment::StyledSegment() {
     start = 0;
 }
 
-StyledSegment StyledSegment::Split(uint64_t index) {
+std::shared_ptr<StyledSegment> StyledSegment::Split(uint64_t index) {
     if(index > str.length()) throw std::runtime_error("Index " + std::to_string(index) + " is out of bounds! << StyledSegment::Split()");
 
     icu::UnicodeString substr(str, index);
 
-    StyledSegment new_seg(substr, style, start + index);
-
     str.remove(index);
 
-    return new_seg;
+    return std::make_shared<StyledSegment>(substr, style, start + index);
 }
 
 uint64_t StyledSegment::Len() const {
@@ -43,17 +41,17 @@ StyledSegmentArray::StyledSegmentArray() {
 }
 
 bool StyledSegmentArray::InSegment(uint64_t segment_index, uint64_t index) const {
-    return (index < segments[segment_index].start + segments[segment_index].Len()) && (index >= segments[segment_index].start);
+    return (index < segments[segment_index].get()->start + segments[segment_index].get()->Len()) && (index >= segments[segment_index].get()->start);
 }
 
 void StyledSegmentArray::Append(const icu::UnicodeString& str, const Style* style) {
     uint64_t segment_start = 0;
 
     if(segments.size() > 0) {
-        segment_start = segments.back().start + segments.back().Len();
+        segment_start = segments.back().get()->start + segments.back().get()->Len();
     }
 
-    segments.push_back(StyledSegment(str, style, segment_start));
+    segments.push_back(std::make_shared<StyledSegment>(str, style, segment_start));
 }
 
 void StyledSegmentArray::Append(const char* str, const Style* style) {
@@ -64,10 +62,11 @@ void StyledSegmentArray::Append(const char* str, const Style* style) {
 void StyledSegmentArray::Add(const icu::UnicodeString& str, const Style* style, uint64_t index) {
     if(str.length() == 0) return;
 
-    StyledSegment new_segment(str, style, index);
+    std::shared_ptr<StyledSegment> new_segment = std::make_shared<StyledSegment>(str, style, index);
 
     if(segments.size() == 0) {
-        InsertSegment(StyledSegment(str, style, index), 0);
+        InsertSegment(new_segment, 0);
+        return;
     }
 
     if(Len() == 0) segments[0] = new_segment;
@@ -80,7 +79,7 @@ void StyledSegmentArray::Add(const icu::UnicodeString& str, const Style* style, 
         segments.push_back(new_segment);
     } else {
         uint64_t segment_index = GetSegmentIndex(index);
-        bool back = !((segments[segment_index].start == index) || !(segments[segment_index].start < index));
+        bool back = !((segments[segment_index].get()->start == index) || !(segments[segment_index].get()->start < index));
 
         Erase(index, index + str.length() - 1);
 
@@ -104,25 +103,25 @@ void StyledSegmentArray::Erase(uint64_t start, uint64_t end) {
     uint64_t start_segment_index = GetSegmentIndex(start);
     uint64_t end_segment_index = GetSegmentIndex(end);
 
-    if(start < segments[start_segment_index].start) {
+    if(start < segments[start_segment_index].get()->start) {
         // Remove text
-        uint64_t erase_len = (end - start + 1) - (segments[start_segment_index].start - start);
+        uint64_t erase_len = (end - start + 1) - (segments[start_segment_index].get()->start - start);
 
-        segments[start_segment_index].str.remove(0, erase_len);
-        segments[start_segment_index].start += erase_len;
+        segments[start_segment_index].get()->str.remove(0, erase_len);
+        segments[start_segment_index].get()->start += erase_len;
 
         // Clean up
         Clean(start_segment_index);
     } else if(start_segment_index == end_segment_index) {
         // Remove text
-        uint64_t erase_index = start - segments[start_segment_index].start;
+        uint64_t erase_index = start - segments[start_segment_index].get()->start;
         uint64_t erase_len = end - start + 1;
 
-        segments[start_segment_index].str.remove(erase_index, erase_len);
+        segments[start_segment_index].get()->str.remove(erase_index, erase_len);
 
         // Split initial segment
-        InsertSegment(segments[start_segment_index].Split(erase_index), start_segment_index + 1);
-        segments[start_segment_index + 1].start += erase_len;
+        InsertSegment(segments[start_segment_index].get()->Split(erase_index), start_segment_index + 1);
+        segments[start_segment_index + 1].get()->start += erase_len;
 
         // Clean up
         Clean(start_segment_index + !Clean(start_segment_index));
@@ -131,8 +130,8 @@ void StyledSegmentArray::Erase(uint64_t start, uint64_t end) {
         bool clean_end;
 
         // Remove text in start segment
-        segments[start_segment_index].Split(start - segments[start_segment_index].start);
-        clean_start = segments[start_segment_index].Len() == 0;
+        segments[start_segment_index].get()->Split(start - segments[start_segment_index].get()->start);
+        clean_start = segments[start_segment_index].get()->Len() == 0;
 
         // Remove everything inbetween
         for(uint64_t i = start_segment_index + 1; i < end_segment_index;) {
@@ -141,8 +140,8 @@ void StyledSegmentArray::Erase(uint64_t start, uint64_t end) {
         }
 
         // Remove text in end segment
-        segments[end_segment_index] = segments[end_segment_index].Split(end - segments[end_segment_index].start + 1);
-        clean_end = segments[end_segment_index].Len() == 0;
+        segments[end_segment_index] = segments[end_segment_index].get()->Split(end - segments[end_segment_index].get()->start + 1);
+        clean_end = segments[end_segment_index].get()->Len() == 0;
 
         // Clean up
         if(clean_end) Clean(end_segment_index);
@@ -154,7 +153,7 @@ void StyledSegmentArray::Clear() {
     segments.clear();
 }
 
-void StyledSegmentArray::InsertSegment(StyledSegment segment, uint64_t index) {
+void StyledSegmentArray::InsertSegment(std::shared_ptr<StyledSegment> segment, uint64_t index) {
     if(index == segments.size()) {
         segments.push_back(segment);
     } else {
@@ -164,10 +163,10 @@ void StyledSegmentArray::InsertSegment(StyledSegment segment, uint64_t index) {
 
 void StyledSegmentArray::PrintDebug() const {
     printf("|");
-    for(StyledSegment seg : segments) {
+    for(std::shared_ptr<StyledSegment> seg : segments) {
         std::string utf8;
-        seg.str.toUTF8String(utf8);
-        printf("%i \"%s\"|", seg.start, utf8.c_str());
+        seg.get()->str.toUTF8String(utf8);
+        printf("%i \"%s\"|", seg.get()->start, utf8.c_str());
     }
     printf("%i|\n", Len());
 }
@@ -176,7 +175,7 @@ uint64_t StyledSegmentArray::Len() const {
     if(segments.size() == 0) {
         return 0;
     } else {
-        return segments.back().start + segments.back().Len();
+        return segments.back().get()->start + segments.back().get()->Len();
     }
 }
 
@@ -187,15 +186,15 @@ uint64_t StyledSegmentArray::GetSegmentIndex(uint64_t index) const {
         return 0;
     }
 
-    if(index >= segments.back().start) {
+    if(index >= segments.back().get()->start) {
         return segments.size() - 1;
     }
 
     for(size_t i = 0; i < segments.size() - 1; i++) {
-        if(index < segments[i + 1].start) {
+        if(index < segments[i + 1].get()->start) {
             segment_index = i;
 
-            if(segments[i + 1].start == segments[i].start) {
+            if(segments[i + 1].get()->start == segments[i].get()->start) {
                 continue;
             } else {
                 break;
@@ -207,7 +206,7 @@ uint64_t StyledSegmentArray::GetSegmentIndex(uint64_t index) const {
 }
 
 bool StyledSegmentArray::Clean(uint64_t segment_index) {
-    if(segments[segment_index].Len() == 0) {
+    if(segments[segment_index].get()->Len() == 0) {
         segments.erase(segments.begin() + segment_index);
         return true;
     }

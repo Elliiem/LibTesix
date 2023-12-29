@@ -1,6 +1,5 @@
 #pragma once
 
-// TODO Switch to const std::string& from const char*
 #include "Json.h"
 #include "Overlay.h"
 #include "SegmentArray.h"

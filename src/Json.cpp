@@ -82,7 +82,6 @@ StyledSegmentArray ReadSegmentArray(rapidjson::Value& json_arr) {
         const Style* style = GetStylePointer(json_segments[i].HasMember("style") ? json_segments[i]["style"].GetString() : "");
         uint64_t start = json_segments[i].HasMember("start") ? json_segments[i]["start"].GetUint64() : 0;
 
-        // TODO Update when changing const char* to std::string
         arr.Add(str.c_str(), style, start);
     }
 

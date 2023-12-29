@@ -4,7 +4,6 @@
 
 namespace LibTesix {
 
-// TODO update raw in constructors
 StyledString::StyledString(const icu::UnicodeString& base_string, const Style* style) {
     Append(base_string, style);
     UpdateRaw();
@@ -20,8 +19,8 @@ StyledString::StyledString(const StyledSegmentArray& string) {
     UpdateRaw();
 }
 
-StyledString::StyledString(const std::vector<StyledSegment>& string) {
-    segments = std::vector<StyledSegment>(string);
+StyledString::StyledString(const std::vector<std::shared_ptr<StyledSegment>>& string) {
+    segments = std::vector<std::shared_ptr<StyledSegment>>(string);
     UpdateRaw();
 }
 
@@ -35,11 +34,11 @@ void StyledString::Insert(const icu::UnicodeString& str, const Style* style, uin
 
     uint64_t segment_index = GetSegmentIndex(index);
 
-    if(index == segments[segment_index].start) {
-        InsertSegment(StyledSegment(str, style, index), segment_index);
+    if(index == segments[segment_index].get()->start) {
+        InsertSegment(std::make_shared<StyledSegment>(str, style, index), segment_index);
     } else {
-        InsertSegment(segments[segment_index].Split(index - segments[segment_index].start), segment_index + 1);
-        InsertSegment(StyledSegment(str, style, index), segment_index + 1);
+        InsertSegment(segments[segment_index].get()->Split(index - segments[segment_index].get()->start), segment_index + 1);
+        InsertSegment(std::make_shared<StyledSegment>(str, style, index), segment_index + 1);
     }
 
     UpdateSegmentStart(segment_index);
@@ -52,7 +51,7 @@ void StyledString::Insert(const char* str, const Style* style, uint64_t index) {
 
 void StyledString::Append(const icu::UnicodeString& str, const Style* style) {
     if(segments.size() == 1 && Len() == 0) {
-        segments[0] = StyledSegment(str, style, 0);
+        segments[0] = std::make_shared<StyledSegment>(str, style, 0);
     } else {
         StyledSegmentArray::Append(str, style);
     }
@@ -99,41 +98,41 @@ icu::UnicodeString StyledString::Write(const char* str, const Style* style, uint
 }
 
 StyledString StyledString::Substr(uint64_t start, uint64_t end) {
-    std::vector<StyledSegment> substr_segments;
+    std::vector<std::shared_ptr<StyledSegment>> substr_segments;
 
     uint64_t start_segment_index = GetSegmentIndex(start);
     uint64_t end_segment_index = GetSegmentIndex(end);
 
     if(start_segment_index == end_segment_index) {
         icu::UnicodeString segment_substr;
-        uint64_t segment_start = segments[start_segment_index].start;
+        uint64_t segment_start = segments[start_segment_index].get()->start;
 
-        segments[start_segment_index].str.extractBetween(start - segment_start, end - segment_start + 1, segment_substr);
-        substr_segments.push_back(StyledSegment(segment_substr, segments[start_segment_index].style, 0));
+        segments[start_segment_index].get()->str.extractBetween(start - segment_start, end - segment_start + 1, segment_substr);
+        substr_segments.push_back(std::make_shared<StyledSegment>(segment_substr, segments[start_segment_index].get()->style, 0));
     } else {
         icu::UnicodeString segment_substr;
 
         // get substring of the start segment
         // ...and add that to substr_segments
-        uint64_t start_segment_len = segments[start_segment_index].Len();
-        uint64_t start_segment_start = segments[start_segment_index].start;
+        uint64_t start_segment_len = segments[start_segment_index].get()->Len();
+        uint64_t start_segment_start = segments[start_segment_index].get()->start;
 
-        segments[start_segment_index].str.extractBetween(start - start_segment_start, start_segment_len, segment_substr);
-        substr_segments.push_back(StyledSegment(segment_substr, segments[start_segment_index].style, 0));
+        segments[start_segment_index].get()->str.extractBetween(start - start_segment_start, start_segment_len, segment_substr);
+        substr_segments.push_back(std::make_shared<StyledSegment>(segment_substr, segments[start_segment_index].get()->style, 0));
 
         // Add every segment between the start segment and the end segment
         for(uint64_t i = start_segment_index + 1; i < end_segment_index; i++) {
-            uint64_t substr_len = substr_segments.back().start + substr_segments.back().Len();
-            substr_segments.push_back(StyledSegment(segments[i].str, segments[i].style, substr_len));
+            uint64_t substr_len = substr_segments.back().get()->start + substr_segments.back().get()->Len();
+            substr_segments.push_back(std::make_shared<StyledSegment>(segments[i].get()->str, segments[i].get()->style, substr_len));
         }
 
         // get substring of the end segment
         // ...and add that to substr_segments
-        uint64_t end_segment_start = segments[end_segment_index].start;
-        uint64_t substr_len = substr_segments.back().start + substr_segments.back().Len();
+        uint64_t end_segment_start = segments[end_segment_index].get()->start;
+        uint64_t substr_len = substr_segments.back().get()->start + substr_segments.back().get()->Len();
 
-        segments[end_segment_index].str.extractBetween(0, end - end_segment_start + 1, segment_substr);
-        substr_segments.push_back(StyledSegment(segment_substr, segments[end_segment_index].style, substr_len));
+        segments[end_segment_index].get()->str.extractBetween(0, end - end_segment_start + 1, segment_substr);
+        substr_segments.push_back(std::make_shared<StyledSegment>(segment_substr, segments[end_segment_index].get()->style, substr_len));
     }
 
     return StyledString(substr_segments);
@@ -143,7 +142,7 @@ void StyledString::Resize(uint64_t size) {
     if(size == Len()) return;
 
     if(size > Len()) {
-        segments.back().str.append(std::string(size - Len(), ' ').c_str());
+        segments.back().get()->str.append(std::string(size - Len(), ' ').c_str());
     } else {
         StyledSegmentArray::Erase(size, Len() - 1);
         if(segments.size() == 0) {
@@ -161,8 +160,8 @@ void StyledString::Clear(const Style* style) {
 void StyledString::ClearStyle(const Style* style) {
     icu::UnicodeString new_seg_str;
 
-    for(StyledSegment segment : segments) {
-        new_seg_str.append(segment.str);
+    for(std::shared_ptr<StyledSegment> segment : segments) {
+        new_seg_str.append(segment.get()->str);
     }
 
     StyledSegmentArray::Clear();
@@ -173,13 +172,13 @@ void StyledString::ClearStyle(const Style* style) {
 void StyledString::UpdateRaw() {
     std::string new_raw;
 
-    Style state = *segments[0].style;
+    Style state = *segments[0].get()->style;
 
-    for(StyledSegment segment : segments) {
-        new_raw.append(segment.style->GetEscapeCode(state));
-        segment.str.toUTF8String(new_raw);
+    for(std::shared_ptr<StyledSegment> segment : segments) {
+        new_raw.append(segment.get()->style->GetEscapeCode(state));
+        segment.get()->str.toUTF8String(new_raw);
 
-        state = *segment.style;
+        state = *segment.get()->style;
     }
 
     raw = new_raw;
@@ -188,15 +187,15 @@ void StyledString::UpdateRaw() {
 std::string StyledString::Raw(const Style& state, bool should_update) {
     if(should_update) UpdateRaw();
 
-    return segments[0].style->GetEscapeCode(state) + raw;
+    return segments[0].get()->style->GetEscapeCode(state) + raw;
 }
 
 const Style* StyledString::StyleStart() const {
-    return segments[0].style;
+    return segments[0].get()->style;
 }
 
 const Style* StyledString::StyleEnd() const {
-    return segments.back().style;
+    return segments.back().get()->style;
 }
 
 void StyledString::Print(Style& state, bool should_update) {
@@ -209,13 +208,13 @@ void StyledString::Print(Style& state, bool should_update) {
 void StyledString::UpdateSegmentStart(uint64_t index) {
     uint64_t next_start = 0;
     if(index > 0) {
-        next_start = segments[index - 1].start + segments[index - 1].Len();
+        next_start = segments[index - 1].get()->start + segments[index - 1].get()->Len();
     }
 
     for(uint64_t i = index; i < segments.size(); i++) {
-        segments[i].start = next_start;
+        segments[i].get()->start = next_start;
 
-        next_start = segments[i].start + segments[i].Len();
+        next_start = segments[i].get()->start + segments[i].get()->Len();
     }
 }
 
