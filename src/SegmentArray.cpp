@@ -126,12 +126,8 @@ void StyledSegmentArray::Erase(uint64_t start, uint64_t end) {
         // Clean up
         Clean(start_segment_index + !Clean(start_segment_index));
     } else {
-        bool clean_start;
-        bool clean_end;
-
         // Remove text in start segment
         segments[start_segment_index].get()->Split(start - segments[start_segment_index].get()->start);
-        clean_start = segments[start_segment_index].get()->Len() == 0;
 
         // Remove everything inbetween
         for(uint64_t i = start_segment_index + 1; i < end_segment_index;) {
@@ -141,11 +137,10 @@ void StyledSegmentArray::Erase(uint64_t start, uint64_t end) {
 
         // Remove text in end segment
         segments[end_segment_index] = segments[end_segment_index].get()->Split(end - segments[end_segment_index].get()->start + 1);
-        clean_end = segments[end_segment_index].get()->Len() == 0;
 
         // Clean up
-        if(clean_end) Clean(end_segment_index);
-        if(clean_start) Clean(start_segment_index);
+        Clean(end_segment_index);
+        Clean(start_segment_index);
     }
 }
 

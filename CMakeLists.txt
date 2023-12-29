@@ -5,7 +5,9 @@ project(LibTesix)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(COMPILE_EXAMPLES ON)
+include(CTest)
+
+option(COMPILE_EXAMPLES "aaa" ON)
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
 
@@ -34,5 +36,5 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     ICU::uc
 )
 
-#Tests
-
+#TODO Fix Testing
+add_subdirectory(tests)
