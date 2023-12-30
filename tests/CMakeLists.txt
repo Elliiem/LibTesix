@@ -1,13 +1,21 @@
-cmake_minimum_required(VERSION 3.25)
 
-project(tests)
+file(GLOB TEST_SOURCES_G "${CMAKE_SOURCE_DIR}/tests/*.cpp")
 
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(SOURCE_NAMES)
 
-set(SOURCES "main.cpp" "test.cpp")
+foreach(SOURCE ${TEST_SOURCES_G})
+    get_filename_component(SOURCE_NAME "${SOURCE}" NAME)
+    message(STATUS ${SOURCE_NAME})
+    list(APPEND SOURCE_NAMES "${SOURCE_NAME}")
+endforeach()
 
-add_executable(LibTesixTests ${SOURCES})
-target_link_libraries(LibTesixTests PRIVATE LibTesix)
+set(TEST_SOURCES "${SOURCE_NAMES}")
 
-add_test(NAME test1 COMMAND LibTesixTests test1)
+create_test_sourcelist(Tests
+    ${TEST_SOURCES}
+)
+
+add_executable(CommonCxxTests ${Tests})
+
+add_test(NAME test COMMAND CommonCxxTests test)
+set_property(TEST test PROPERTY PASS_REGULAR_EXPRESSION "\n")

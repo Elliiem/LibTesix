@@ -1,80 +1,84 @@
 {
-    "window": {
-        "x": 10,
-        "y": 30,
-        "width": 10,
-        "height": 5,
-        "styles": [
-            {
-                "name": "green-white",
-                "fg": {
-                    "r": 255,
-                    "g": 255,
-                    "b": 255
+    "styles": {
+        "green-white": {
+            "fg": {
+                "r": 255,
+                "g": 255,
+                "b": 255
+            },
+            "bg": {
+                "r": 50,
+                "g": 150,
+                "b": 50
+            },
+            "modifiers": {
+                "thickness": 1,
+                "blinking": false,
+                "reverse": false,
+                "underlined": false,
+                "italic": false
+            }
+        }
+    },
+    "objects": {
+        "window": {
+            "type": "window",
+            "x": 10,
+            "y": 10,
+            "width": 10,
+            "height": 5,
+            "lines": [
+                {
+                    "segments": [
+                        {
+                            "start": 0,
+                            "string": "0123456789",
+                            "style": "green-white"
+                        }
+                    ]
                 },
-                "bg": {
-                    "r": 50,
-                    "g": 150,
-                    "b": 50
+                {
+                    "segments": [
+                        {
+                            "start": 0,
+                            "string": "0123456789",
+                            "style": "green-white"
+                        }
+                    ]
                 },
-                "modifiers": {
-                    "thickness": 1,
-                    "blinking": false,
-                    "reverse": false,
-                    "underlined": false,
-                    "italic": false
+                {
+                    "segments": [
+                        {
+                            "start": 0,
+                            "string": "0123456789",
+                            "style": "green-white"
+                        }
+                    ]
+                },
+                {
+                    "segments": [
+                        {
+                            "start": 0,
+                            "string": "0123456789",
+                            "style": "green-white"
+                        }
+                    ]
+                },
+                {
+                    "segments": [
+                        {
+                            "start": 0,
+                            "string": "0123456789",
+                            "style": "green-white"
+                        }
+                    ]
                 }
-            }
-        ],
-        "lines": [
-            {
-                "segments": [
-                    {
-                        "start": 0,
-                        "string": "0123456789",
-                        "style": "green-white"
-                    }
-                ]
-            },
-            {
-                "segments": [
-                    {
-                        "start": 0,
-                        "string": "0123456789",
-                        "style": "green-white"
-                    }
-                ]
-            },
-            {
-                "segments": [
-                    {
-                        "start": 0,
-                        "string": "0123456789",
-                        "style": "green-white"
-                    }
-                ]
-            },
-            {
-                "segments": [
-                    {
-                        "start": 0,
-                        "string": "0123456789",
-                        "style": "green-white"
-                    }
-                ]
-            },
-            {
-                "segments": [
-                    {
-                        "start": 0,
-                        "string": "0123456789",
-                        "style": "green-white"
-                    }
-                ]
-            }
-        ],
-        "overlay_enabled": true,
+            ],
+            "overlay_enabled": true,
+            "overlay": "overlay"
+        },
         "overlay": {
+            "type": "overlay",
             "lines": [
                 {
                     "segments": [

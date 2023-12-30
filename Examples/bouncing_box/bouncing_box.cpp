@@ -8,11 +8,11 @@ int main() {
     LibTesix::InitScreen();
 
     LibTesix::Style background("background");
-    background.BG(LibTesix::Color(50, 0, 50));
+    background.BG(LibTesix::Color(0, 50, 0));
 
     const LibTesix::Style* background_p = LibTesix::style_allocator.Add(background);
 
-    LibTesix::JsonDocument json("./Examples/bouncing_box/window.json");
+    LibTesix::JsonDocument json("/home/elliem/Dev/Programs/1st-Party/cpp/LibTesix/Examples/bouncing_box/window.json");
     LibTesix::Window win(json, "window");
 
     LibTesix::Clear(background_p);

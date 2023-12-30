@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.25)
 
 project(LibTesix)
 
@@ -36,5 +36,20 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     ICU::uc
 )
 
-#TODO Fix Testing
+#set(SOURCES "./tests/main.cpp" "./tests/test.cpp")
+#
+#create_test_sourcelist (Tests
+#    ${SOURCES}
+#)
+#
+# add the executable
+#add_executable (CommonCxxTests ${Tests})
+#remove(Tests main.cpp)
+#
+# Add all the ADD_TEST for each test
+#
+#add_test (NAME ./tests/test COMMAND CommonCxxTests "./tests/test")
+#
+#set_property(TEST ./tests/test PROPERTY PASS_REGULAR_EXPRESSION "AAA")
+
 add_subdirectory(tests)
