@@ -16,7 +16,7 @@ struct StyledString : public StyledSegmentArray {
     StyledString(const char* base_string, const Style* style = style_allocator[0UL]);
 
     StyledString(const StyledSegmentArray& string);
-    StyledString(const std::vector<std::shared_ptr<StyledSegment>>& string);
+    StyledString(const std::vector<StyledSegment>& string);
 
     StyledString();
 

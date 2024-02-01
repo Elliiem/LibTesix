@@ -187,16 +187,16 @@ Range ClampRange(uint64_t max, Range range) {
 }
 
 void ApplySegmentArray(StyledSegmentArray& arr, StyledString& str, uint64_t offset) {
-    for(std::shared_ptr<StyledSegment> seg : arr.segments) {
-        if(seg.get()->start >= offset + str.Len()) {
+    for(StyledSegment seg : arr.segments) {
+        if(seg.start >= offset + str.Len()) {
             break;
         }
 
-        if(seg.get()->start < offset && seg.get()->start + seg.get()->Len() > offset) {
-            icu::UnicodeString segment_substr(seg.get()->str, offset, seg.get()->Len() - offset);
-            str.Write(segment_substr, seg.get()->style, 0);
-        } else if(seg.get()->start >= offset) {
-            str.Write(seg.get()->str, seg.get()->style, seg.get()->start - offset);
+        if(seg.start < offset && seg.start + seg.Len() > offset) {
+            icu::UnicodeString segment_substr(seg.str, offset, seg.Len() - offset);
+            str.Write(segment_substr, seg.style, 0);
+        } else if(seg.start >= offset) {
+            str.Write(seg.str, seg.style, seg.start - offset);
         }
     }
 

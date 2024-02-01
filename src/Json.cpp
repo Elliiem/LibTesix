@@ -118,6 +118,7 @@ bool Window::LoadFromJson(JsonDocument& json, const std::string& name) {
     if(!json.doc["objects"][name.c_str()].HasMember("type") ? json.doc["objects"][name.c_str()]["type"].GetString() == "window" : false) return false;
 
     return LoadFromJson(json, json.doc["objects"][name.c_str()]);
+    printf("sos\n");
 }
 
 bool Window::LoadFromJson(JsonDocument& json, rapidjson::Value& json_window) {
@@ -137,6 +138,8 @@ bool Window::LoadFromJson(JsonDocument& json, rapidjson::Value& json_window) {
         // TODO Make StyledString Loader
         lines.push_back(ReadSegmentArray(json_window["lines"][i]));
     }
+
+    return true;
 }
 
 bool Overlay::WriteToJson(JsonDocument& json, const std::string& name) {

@@ -12,9 +12,15 @@ int main() {
 
     const LibTesix::Style* background_p = LibTesix::style_allocator.Add(background);
 
+    printf("sus\n");
+
     LibTesix::JsonDocument json("/home/elliem/Dev/Programs/1st-Party/cpp/LibTesix/Examples/bouncing_box/window.json");
+
+    printf("sus\n");
+
     LibTesix::Window win(json, "window");
 
+    printf("sus\n");
     LibTesix::Clear(background_p);
 
     int64_t x_vel = 2;

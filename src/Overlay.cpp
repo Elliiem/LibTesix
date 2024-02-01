@@ -71,9 +71,9 @@ void Overlay::UpdateWidth() {
     uint64_t new_width {};
 
     for(StyledSegmentArray& arr : lines) {
-        for(std::shared_ptr<StyledSegment> seg : arr.segments) {
-            if(seg.get()->start + seg.get()->str.length() > new_width) {
-                new_width = seg.get()->start + seg.get()->str.length();
+        for(StyledSegment seg : arr.segments) {
+            if(seg.start + seg.str.length() > new_width) {
+                new_width = seg.start + seg.str.length();
             }
         }
     }

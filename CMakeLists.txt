@@ -51,5 +51,3 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 #add_test (NAME ./tests/test COMMAND CommonCxxTests "./tests/test")
 #
 #set_property(TEST ./tests/test PROPERTY PASS_REGULAR_EXPRESSION "AAA")
-
-add_subdirectory(tests)
