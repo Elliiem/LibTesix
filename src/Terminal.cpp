@@ -1,4 +1,4 @@
-#include "Terminal.h"
+#include "Terminal.hpp"
 
 #include <csignal>
 #include <stdexcept>
@@ -67,10 +67,6 @@ uint64_t GetTerminalHeight() {
 #else
     return w.ws_row;
 #endif
-}
-
-TerminalState::TerminalState() {
-    SegmentArray fill;
 }
 
 } // namespace LibTesix

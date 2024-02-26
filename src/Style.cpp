@@ -1,4 +1,4 @@
-#include "Style.h"
+#include "Style.hpp"
 
 #include <cstring>
 #include <iostream>
@@ -63,7 +63,7 @@ Style::Style(const std::string& name) {
 
 Style::Style(const std::string& name, ColorPair col) {
     this->name = name;
-    this->col = col;
+    this->col  = col;
 }
 
 Style* Style::Bold(bool val) {
@@ -133,11 +133,13 @@ std::string Style::GetEscapeCode(const Style& state) const {
     }
 
     if(!(col._fg == state.col._fg)) {
-        ret.append("\033[38;2;" + std::to_string(col._fg.r) + ";" + std::to_string(col._fg.g) + ";" + std::to_string(col._fg.b) + "m");
+        ret.append(
+            "\033[38;2;" + std::to_string(col._fg.r) + ";" + std::to_string(col._fg.g) + ";" + std::to_string(col._fg.b) + "m");
     }
 
     if(!(col._bg == state.col._bg)) {
-        ret.append("\033[48;2;" + std::to_string(col._bg.r) + ";" + std::to_string(col._bg.g) + ";" + std::to_string(col._bg.b) + "m");
+        ret.append(
+            "\033[48;2;" + std::to_string(col._bg.r) + ";" + std::to_string(col._bg.g) + ";" + std::to_string(col._bg.b) + "m");
     }
 
     return ret;
@@ -154,34 +156,15 @@ bool Style::operator==(const Style& other) const {
 }
 
 StyleAllocator::StyleAllocator() {
-    ids["__default"] = 0;
-    styles.push_back(std::make_unique<Style>("__default"));
     _styles["__default__"] = std::make_unique<Style>("__default__");
 }
 
-Style* StyleAllocator::operator[](const std::string& name) {
-    if(ids.contains(name)) {
-        uint64_t id = ids[name];
-        return styles[id].get();
+Style& StyleAllocator::operator[](const std::string& name) {
+    if(_styles.contains(name)) {
+        return *_styles[name].get();
     }
 
-    return nullptr;
-}
-
-Style* StyleAllocator::operator[](uint64_t id) {
-    return (id < styles.size()) ? styles[id].get() : nullptr;
-}
-
-Style* StyleAllocator::Add(const Style& style) {
-    if(!ids.contains(style.name)) {
-        ids[style.name] = styles.size();
-
-        styles.push_back(std::make_unique<Style>(style));
-
-        return styles.back().get();
-    } else {
-        return (*this)[style.name];
-    }
+    throw std::runtime_error("Unkown style! << StyleAllocator::operator[]");
 }
 
 Style& StyleAllocator::Add(const std::string& name) {

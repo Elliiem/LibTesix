@@ -1,4 +1,4 @@
-#include "StyledSegmentString.h"
+#include "StyledSegmentString.hpp"
 
 namespace LibTesix {
 

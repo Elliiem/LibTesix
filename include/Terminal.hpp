@@ -1,7 +1,6 @@
 #pragma once
 
-#include "SegmentArray.h"
-#include "Style.h"
+#include "Style.hpp"
 
 #include <termios.h>
 
@@ -28,10 +27,8 @@ uint64_t GetTerminalHeight();
 struct TerminalState {
     TerminalState();
 
-    std::vector<SegmentArray> _state;
-
     uint64_t height = 0;
-    uint64_t width = 0;
+    uint64_t width  = 0;
 };
 
 } // namespace LibTesix

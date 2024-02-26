@@ -1,4 +1,4 @@
-#include "LibTesix.h"
+/*#include "LibTesix.h"
 
 #include <cinttypes>
 #include <iostream>
@@ -38,5 +38,9 @@ int main() {
         LibTesix::Clear(background_p);
     }
 
+    return 0;
+}*/
+
+int main() {
     return 0;
 }

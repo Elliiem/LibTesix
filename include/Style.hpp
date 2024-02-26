@@ -56,7 +56,7 @@ struct Style {
     Style* FG(Color val);
     Style* Color(ColorPair val);
 
-    bool GetMod(States state) const;
+    bool             GetMod(States state) const;
     const ColorPair& GetColor() const;
 
     // Returns the escape code sequence used in order to change from the supplied teminal state to this style
@@ -84,22 +84,16 @@ class StyleAllocator {
   public:
     StyleAllocator();
 
-    Style* operator[](const std::string& name); // TODO use refs
-    Style* operator[](uint64_t id);             // TODO remove
-
-    Style* Add(const Style& style); // TODO remove
+    Style& operator[](const std::string& name);
 
     Style& Add(const std::string& name);
 
   private:
-    std::map<std::string, uint64_t> ids;        // TODO remove
-    std::vector<std::unique_ptr<Style>> styles; // TODO remove
-
     std::map<std::string, std::unique_ptr<Style>> _styles;
 };
 
 // TODO let user define this
 inline StyleAllocator style_allocator;
-inline const Style* STANDARD_STYLE = style_allocator["__default"];
+inline const Style&   STANDARD_STYLE = style_allocator["__default"];
 
 } // namespace LibTesix

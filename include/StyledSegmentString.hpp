@@ -2,7 +2,7 @@
 
 #define NDEBUG
 
-#include "Style.h"
+#include "Style.hpp"
 
 #include <cinttypes>
 #include <numeric>
