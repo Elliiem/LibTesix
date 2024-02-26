@@ -70,8 +70,8 @@ const Style* GetStylePointer(const std::string& name) {
     return style_p;
 }
 
-StyledSegmentArray ReadSegmentArray(rapidjson::Value& json_arr) {
-    StyledSegmentArray arr;
+SegmentArray ReadSegmentArray(rapidjson::Value& json_arr) {
+    SegmentArray arr;
 
     if(!json_arr.HasMember("segments")) return arr;
 

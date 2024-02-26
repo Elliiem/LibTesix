@@ -10,13 +10,13 @@
 
 namespace LibTesix {
 
-struct StyledString : public StyledSegmentArray {
+struct StyledString : public SegmentArray {
   public:
     StyledString(const icu::UnicodeString& base_string, const Style* style = style_allocator[0UL]);
     StyledString(const char* base_string, const Style* style = style_allocator[0UL]);
 
-    StyledString(const StyledSegmentArray& string);
-    StyledString(const std::vector<StyledSegment>& string);
+    StyledString(const SegmentArray& string);
+    StyledString(const std::vector<SegmentArray::StyledSegment>& string);
 
     StyledString();
 
@@ -30,11 +30,11 @@ struct StyledString : public StyledSegmentArray {
     icu::UnicodeString Write(const icu::UnicodeString& str, const Style* style, uint64_t index);
     icu::UnicodeString Write(const char* str, const Style* style, uint64_t index);
 
-    StyledString Substr(uint64_t start, uint64_t end);
+    StyledString Substr(uint64_t start, uint64_t end) const;
 
     void Resize(uint64_t size);
 
-    using StyledSegmentArray::Len;
+    using SegmentArray::Len;
 
     void Clear(const Style* style = style_allocator[0UL]);
     void ClearStyle(const Style* style = style_allocator[0UL]);
@@ -42,11 +42,9 @@ struct StyledString : public StyledSegmentArray {
     void UpdateRaw();
     std::string Raw(const Style& state, bool should_update = true);
 
-    const Style* StyleStart() const;
-    const Style* StyleEnd() const;
-
-    void Print(Style& state, bool should_update = true);
-    using StyledSegmentArray::PrintDebug;
+#ifdef NDEBUG
+    using SegmentArray::PrintDebug;
+#endif
 
   private:
     std::string raw;

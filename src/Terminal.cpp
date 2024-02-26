@@ -69,4 +69,8 @@ uint64_t GetTerminalHeight() {
 #endif
 }
 
+TerminalState::TerminalState() {
+    SegmentArray fill;
+}
+
 } // namespace LibTesix

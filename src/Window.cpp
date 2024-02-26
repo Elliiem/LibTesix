@@ -66,8 +66,8 @@ void Window::UpdateRaw() {
         return;
     }
 
-    Style state = *lines[y_visible.first].StyleStart();
-    raw_start_style = lines[y_visible.first].StyleStart();
+    Style state = *lines[y_visible.first].GetStyleStart();
+    raw_start_style = lines[y_visible.first].GetStyleStart();
 
     uint64_t clipped_x;
     clipped_x = x * (x > 0);
@@ -76,12 +76,13 @@ void Window::UpdateRaw() {
         new_raw.append("\033[" + std::to_string(y + i + 1) + ";" + std::to_string(clipped_x + 1) + "f");
 
         StyledString visible = lines[i].Substr(x_visible.first, x_visible.second);
+
         if(overlay_enabled && i < overlay.height) ApplySegmentArray(overlay.lines[i], visible, x_visible.first);
 
         new_raw.append(visible.Raw(state, 0));
-        state = *visible.StyleEnd();
+        state = *visible.GetStyleEnd();
 
-        raw_end_style = visible.StyleEnd();
+        raw_end_style = visible.GetStyleEnd();
     }
 
     raw = new_raw;
@@ -186,17 +187,17 @@ Range ClampRange(uint64_t max, Range range) {
     }
 }
 
-void ApplySegmentArray(StyledSegmentArray& arr, StyledString& str, uint64_t offset) {
-    for(StyledSegment seg : arr.segments) {
-        if(seg.start >= offset + str.Len()) {
+void ApplySegmentArray(SegmentArray& arr, StyledString& str, uint64_t offset) {
+    for(SegmentArray::StyledSegment seg : arr._segments) {
+        if(seg._start >= offset + str.Len()) {
             break;
         }
 
-        if(seg.start < offset && seg.start + seg.Len() > offset) {
-            icu::UnicodeString segment_substr(seg.str, offset, seg.Len() - offset);
-            str.Write(segment_substr, seg.style, 0);
-        } else if(seg.start >= offset) {
-            str.Write(seg.str, seg.style, seg.start - offset);
+        if(seg._start < offset && seg._start + seg.Len() > offset) {
+            icu::UnicodeString segment_substr(seg._str, offset, seg.Len() - offset);
+            str.Write(segment_substr, seg._style, 0);
+        } else if(seg._start >= offset) {
+            str.Write(seg._str, seg._style, seg._start - offset);
         }
     }
 

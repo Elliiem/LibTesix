@@ -13,7 +13,7 @@ typedef std::pair<int64_t, int64_t> Range;
 
 Range ClampRange(uint64_t max, Range range);
 
-void ApplySegmentArray(StyledSegmentArray& arr, StyledString& str, uint64_t offset = 0);
+void ApplySegmentArray(SegmentArray& arr, StyledString& str, uint64_t offset = 0);
 
 class Window {
   public:

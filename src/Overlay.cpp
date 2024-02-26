@@ -27,7 +27,7 @@ Overlay::Overlay(rapidjson::Value& json_overlay) {
 }
 
 void Overlay::Clear() {
-    for(StyledSegmentArray& arr : lines) {
+    for(SegmentArray& arr : lines) {
         arr.Clear();
     }
 }
@@ -41,7 +41,7 @@ void Overlay::Box(uint64_t x, uint64_t y, uint64_t width, uint64_t height, const
     }
     top_str.append(top_left);
 
-    StyledSegmentArray middle;
+    SegmentArray middle;
     middle.Add(right, style, 0);
     middle.Add(left, style, width - 1);
 
@@ -70,10 +70,10 @@ void Overlay::Box(const Style* style, const char* right, const char* left, const
 void Overlay::UpdateWidth() {
     uint64_t new_width {};
 
-    for(StyledSegmentArray& arr : lines) {
-        for(StyledSegment seg : arr.segments) {
-            if(seg.start + seg.str.length() > new_width) {
-                new_width = seg.start + seg.str.length();
+    for(SegmentArray& arr : lines) {
+        for(SegmentArray::StyledSegment seg : arr._segments) {
+            if(seg._start + seg._str.length() > new_width) {
+                new_width = seg._start + seg._str.length();
             }
         }
     }

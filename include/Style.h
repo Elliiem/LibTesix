@@ -8,7 +8,6 @@
 #include <vector>
 
 namespace LibTesix {
-
 struct Color {
     Color(uint64_t r, uint64_t g, uint64_t b);
     Color();
@@ -28,9 +27,11 @@ struct ColorPair {
     ColorPair();
 
     // foreground
-    Color fg;
+    Color _fg;
     // background
-    Color bg;
+    Color _bg;
+
+    bool operator==(const ColorPair& other) const;
 };
 
 const ColorPair STANDARD_COLORPAIR(STANDARD_FG, STANDARD_BG);
@@ -41,8 +42,8 @@ struct Style {
     // The indicies of modifiers in LibTesix::Style::bool_state
     enum States { BOLD, FAINT, BLINKING, REVERSE, UNDERLINED, ITALIC, STATES_COUNT };
 
-    Style(const std::string& name);
-    Style(const std::string& name, ColorPair col);
+    Style(const std::string& name);                // TODO make private
+    Style(const std::string& name, ColorPair col); // TODO make private
 
     // Setters for modifiers
     Style* Bold(bool val);
@@ -56,14 +57,14 @@ struct Style {
     Style* Color(ColorPair val);
 
     bool GetMod(States state) const;
+    const ColorPair& GetColor() const;
 
     // Returns the escape code sequence used in order to change from the supplied teminal state to this style
     std::string GetEscapeCode(const Style& state) const;
 
     void Reset();
 
-    // The color of the Style
-    ColorPair col;
+    bool operator==(const Style& other) const;
 
   private:
     Style();
@@ -71,23 +72,33 @@ struct Style {
     //  States of modifiers eg. bold, italic or blinking text
     //  these modifiers are stored in this vector at the values in the enum States, defined in the Style source file
     std::bitset<STATES_COUNT> modifiers;
+
+    // The name of the Style used to identify styles when exporting or importing from json
     std::string name;
+
+    // The color of the Style
+    ColorPair col;
 };
 
 class StyleAllocator {
   public:
     StyleAllocator();
 
-    const Style* operator[](const std::string& name);
-    const Style* operator[](uint64_t id);
+    Style* operator[](const std::string& name); // TODO use refs
+    Style* operator[](uint64_t id);             // TODO remove
 
-    const Style* Add(const Style& style);
+    Style* Add(const Style& style); // TODO remove
+
+    Style& Add(const std::string& name);
 
   private:
-    std::map<std::string, uint64_t> ids;
-    std::vector<std::unique_ptr<const Style>> styles;
+    std::map<std::string, uint64_t> ids;        // TODO remove
+    std::vector<std::unique_ptr<Style>> styles; // TODO remove
+
+    std::map<std::string, std::unique_ptr<Style>> _styles;
 };
 
+// TODO let user define this
 inline StyleAllocator style_allocator;
 inline const Style* STANDARD_STYLE = style_allocator["__default"];
 

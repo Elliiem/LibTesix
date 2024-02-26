@@ -40,13 +40,17 @@ bool Color::operator==(const Color& other) const {
 }
 
 ColorPair::ColorPair(Color fg, Color bg) {
-    this->fg = fg;
-    this->bg = bg;
+    this->_fg = fg;
+    this->_bg = bg;
 }
 
 ColorPair::ColorPair() {
-    fg = Color(255, 255, 255);
-    bg = Color(0, 0, 0);
+    _fg = Color(255, 255, 255);
+    _bg = Color(0, 0, 0);
+}
+
+bool ColorPair::operator==(const ColorPair& other) const {
+    return _fg == other._fg && _bg == other._bg;
 }
 
 Style::Style() {
@@ -95,12 +99,12 @@ Style* Style::Italic(bool val) {
 }
 
 Style* Style::BG(LibTesix::Color val) {
-    col.bg = val;
+    col._bg = val;
     return this;
 }
 
 Style* Style::FG(LibTesix::Color val) {
-    col.fg = val;
+    col._fg = val;
     return this;
 }
 
@@ -128,12 +132,12 @@ std::string Style::GetEscapeCode(const Style& state) const {
         ret.append(ESCAPE_CODES[2 * change.first + change.second]);
     }
 
-    if(!(col.fg == state.col.fg)) {
-        ret.append("\033[38;2;" + std::to_string(col.fg.r) + ";" + std::to_string(col.fg.g) + ";" + std::to_string(col.fg.b) + "m");
+    if(!(col._fg == state.col._fg)) {
+        ret.append("\033[38;2;" + std::to_string(col._fg.r) + ";" + std::to_string(col._fg.g) + ";" + std::to_string(col._fg.b) + "m");
     }
 
-    if(!(col.bg == state.col.bg)) {
-        ret.append("\033[48;2;" + std::to_string(col.bg.r) + ";" + std::to_string(col.bg.g) + ";" + std::to_string(col.bg.b) + "m");
+    if(!(col._bg == state.col._bg)) {
+        ret.append("\033[48;2;" + std::to_string(col._bg.r) + ";" + std::to_string(col._bg.g) + ";" + std::to_string(col._bg.b) + "m");
     }
 
     return ret;
@@ -145,12 +149,17 @@ void Style::Reset() {
     modifiers.reset();
 }
 
-StyleAllocator::StyleAllocator() {
-    ids["__default"] = 0;
-    styles.push_back(std::make_unique<const Style>("__default"));
+bool Style::operator==(const Style& other) const {
+    return col == other.col && modifiers == other.modifiers && name == other.name;
 }
 
-const Style* StyleAllocator::operator[](const std::string& name) {
+StyleAllocator::StyleAllocator() {
+    ids["__default"] = 0;
+    styles.push_back(std::make_unique<Style>("__default"));
+    _styles["__default__"] = std::make_unique<Style>("__default__");
+}
+
+Style* StyleAllocator::operator[](const std::string& name) {
     if(ids.contains(name)) {
         uint64_t id = ids[name];
         return styles[id].get();
@@ -159,19 +168,28 @@ const Style* StyleAllocator::operator[](const std::string& name) {
     return nullptr;
 }
 
-const Style* StyleAllocator::operator[](uint64_t id) {
+Style* StyleAllocator::operator[](uint64_t id) {
     return (id < styles.size()) ? styles[id].get() : nullptr;
 }
 
-const Style* StyleAllocator::Add(const Style& style) {
+Style* StyleAllocator::Add(const Style& style) {
     if(!ids.contains(style.name)) {
         ids[style.name] = styles.size();
 
-        styles.push_back(std::make_unique<const Style>(style));
+        styles.push_back(std::make_unique<Style>(style));
 
         return styles.back().get();
     } else {
         return (*this)[style.name];
+    }
+}
+
+Style& StyleAllocator::Add(const std::string& name) {
+    if(_styles.contains(name)) {
+        return *_styles[name].get();
+    } else {
+        _styles[name] = std::make_unique<Style>(name);
+        return *_styles[name].get();
     }
 }
 

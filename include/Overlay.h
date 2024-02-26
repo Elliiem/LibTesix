@@ -23,7 +23,7 @@ struct Overlay {
     void Box(const Style* style, const char* right = "┃", const char* left = "┃", const char* top = "━", const char* bottom = "━",
         const char* top_right = "┏", const char* top_left = "┓", const char* bottom_right = "┗", const char* bottom_left = "┛");
 
-    std::vector<StyledSegmentArray> lines;
+    std::vector<SegmentArray> lines;
 
     uint64_t height;
     uint64_t width;

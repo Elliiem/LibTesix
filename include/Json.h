@@ -17,6 +17,6 @@ struct JsonDocument {
     void Save();
 };
 
-StyledSegmentArray ReadSegmentArray(rapidjson::Value& json_arr);
+SegmentArray ReadSegmentArray(rapidjson::Value& json_arr);
 
 } // namespace LibTesix
