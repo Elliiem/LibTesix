@@ -94,6 +94,6 @@ class StyleAllocator {
 
 // TODO let user define this
 inline StyleAllocator style_allocator;
-inline const Style&   STANDARD_STYLE = style_allocator["__default"];
+inline const Style&   STANDARD_STYLE = style_allocator["__default__"];
 
 } // namespace LibTesix

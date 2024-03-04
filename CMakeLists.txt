@@ -7,17 +7,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_BUILD_TYPE Debug)
 
-option(COMPILE_EXAMPLES "aaa" ON)
+option(COMPILE_EXAMPLES "Should the examples be compiled" ON)
 
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+
+
+find_package(ICU 72.1 COMPONENTS uc REQUIRED)
 
 file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
 if(COMPILE_EXAMPLES)
     add_subdirectory(Examples)
 endif()
-
-find_package(ICU 72.1 COMPONENTS uc REQUIRED)
 
 add_library(${PROJECT_NAME} STATIC
     ${SOURCES}

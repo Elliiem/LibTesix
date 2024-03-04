@@ -6,7 +6,7 @@
 
 #include <cinttypes>
 #include <numeric>
-#include <unicode/unistr.h>
+#include <tinyutf8/tinyutf8.h>
 
 namespace LibTesix {
 
@@ -25,25 +25,18 @@ namespace LibTesix {
  * string, with holest the result would be "foo##bar" wich is very useful because non contiugous
  * data doesnt have to be stored in seperate objects.
  */
-struct StyledSegmentString {
+class StyledSegmentString {
+  public:
     /**
      * @brief A segment of the string. this is described in more detail in the description of
      * StyledSegmentString
      */
     struct Segment {
-        Segment(const icu::UnicodeString& str, const Style& style, uint64_t start);
-        Segment(const Segment&& seg);
-        Segment(const Segment& seg);
+        Segment(const tiny_utf8::string& str, const Style& style, uint64_t start);
 
-        uint64_t           _start;
-        const Style&       _style;
-        icu::UnicodeString _str;
-
-        /**
-         * @brief Clones the segment
-         * @returns A pointer to the clone
-         */
-        std::unique_ptr<Segment> Clone() const;
+        uint64_t          _start;
+        const Style&      _style;
+        tiny_utf8::string _str;
     };
 
     /**
@@ -51,7 +44,7 @@ struct StyledSegmentString {
      */
     struct StyledChar {
       public:
-        UChar32      _character;
+        char32_t     _character;
         const Style* _style;
     };
 
@@ -59,10 +52,10 @@ struct StyledSegmentString {
     StyledSegmentString(const StyledSegmentString& str);
 
     /**
-     * @brief The use of pointers in _segments is necessitated by the fucking inability to use const Style& directly in segments.
-     *        This is due to std::vector::erase requiring items to be assignable, which is fucking impossible with references,
-     *        let alone constants. Therefore, the items are wrapped by a pointer, allowing them to be assigned instead
-     *        of the items themselves. (EUDAAA!!!!)
+     * @brief The use of pointers in _segments is necessitated by the fucking inability to use const Style& directly in
+     * segments. This is due to std::vector::erase requiring items to be assignable, which is fucking impossible with
+     * references, let alone constants. Therefore, the items are wrapped by a pointer, allowing them to be assigned
+     * instead of the items themselves. (EUDAAA!!!!)
      */
     std::vector<std::unique_ptr<Segment>> _segments;
 
@@ -70,54 +63,43 @@ struct StyledSegmentString {
     /**
      * @brief Appends a segment to the string
      */
-    void Append(const icu::UnicodeString& str, const Style& style);
+    void Append(const tiny_utf8::string& str, const Style& style);
 
     /**
      * @brief Erases the string in the given range
      */
-    void Erase(std::size_t start = 0, std::size_t end = std::numeric_limits<size_t>::max());
+    void Erase(std::size_t start = 0, std::size_t end = SIZE_MAX);
 
     /**
      * @brief Adds a segment at the index, overwrites other segments
      */
-    void Add(const icu::UnicodeString& str, const Style& style, std::size_t index);
+    void Add(const tiny_utf8::string& str, const Style& style, std::size_t index);
 
     /**
      * @brief Inserts a segment at the index, unlike Add moves following segments if there is no
      * space
      */
-    void Insert(const icu::UnicodeString& str, const Style& style, std::size_t index);
+    void Insert(const tiny_utf8::string& str, const Style& style, std::size_t index);
 
     /**
      * @brief Gets the lenght of the string ie. the start of the last segment plus the lenght of its
      * string
      */
-    inline uint64_t Len() const;
+    uint64_t Len() const;
 
     // private:
 
     /**
      * @brief Finds the index of the segment containing the given index with binary search
      */
-    inline std::size_t GetSegmentIndex(std::size_t index) const;
-
-    /**
-     * @brief Check if the index is in the string of the segment at the index.
-     */
-    inline bool IsInSegment(std::size_t index) const;
-
-    /**
-     * @brief Merges the first and second segment, this does no checks so the caller needs to make
-     * sure everything is valid. The order of the segments is important as the string of the second
-     * segment gets appended to the first, even though they might be the other way around.
-     */
-    inline void Merge(std::size_t first_index, std::size_t second_index);
+    std::size_t GetSegmentIndex(std::size_t index) const;
 
     /**
      * @brief Inserts a segment to the string automatically merges if suitable.
      * The caller needs to make sure the segment is legal.
      */
-    void InsertSegment(const icu::UnicodeString& str, const Style& style, uint64_t start, std::size_t index);
+    void InsertSegment(const tiny_utf8::string& str, const Style& style, uint64_t start, std::size_t index);
+    void InsertSegment(std::unique_ptr<Segment> seg, std::size_t index);
 
 #ifdef NDEBUG
     /**

@@ -1,4 +1,5 @@
 /build
 /.vscode
-/Examples
-!/Examples/bouncing_box
+/Examples/*
+!/Examples/CMakeLists.txt
+!/Examples/.gitkeep
