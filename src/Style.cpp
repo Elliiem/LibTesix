@@ -5,9 +5,10 @@
 
 namespace LibTesix {
 
-// This stores the escape codes to achieve the modifiers enumerated in States found above
+// This stores the escape codes to achieve the _modifiers enumerated in States found above
 // each value has two corresponding escape codes the first one is to turn that modifier off the second one to turn it on
-// To get the corresponding index from a modifier to a escape code use this formula: 2 * modifier + bool(false = off, true = on)
+// To get the corresponding index from a modifier to a escape code use this formula: 2 * modifier + bool(false = off,
+// true = on)
 const std::vector<std::string> ESCAPE_CODES = {
     "\033[22m",
     "\033[1m",
@@ -53,76 +54,70 @@ bool ColorPair::operator==(const ColorPair& other) const {
     return _fg == other._fg && _bg == other._bg;
 }
 
-Style::Style() {
-    name = "";
-}
-
-Style::Style(const std::string& name) {
-    this->name = name;
-}
-
-Style::Style(const std::string& name, ColorPair col) {
-    this->name = name;
-    this->col  = col;
+Style::Style(const tiny_utf8::string& name) : _name(name) {
 }
 
 Style* Style::Bold(bool val) {
-    if(modifiers[FAINT] && val) modifiers[FAINT] = false;
-    modifiers[BOLD] = val;
+    if(_modifiers[FAINT] && val) _modifiers[FAINT] = false;
+    _modifiers[BOLD] = val;
     return this;
 }
 
 Style* Style::Faint(bool val) {
-    if(modifiers[BOLD] && val) modifiers[BOLD] = false;
-    modifiers[FAINT] = val;
+    if(_modifiers[BOLD] && val) _modifiers[BOLD] = false;
+    _modifiers[FAINT] = val;
     return this;
 }
 
 Style* Style::Blinking(bool val) {
-    modifiers[BLINKING] = val;
+    _modifiers[BLINKING] = val;
     return this;
 }
 
 Style* Style::Reverse(bool val) {
-    modifiers[REVERSE] = val;
+    _modifiers[REVERSE] = val;
     return this;
 }
 
 Style* Style::Underlined(bool val) {
-    modifiers[UNDERLINED] = val;
+    _modifiers[UNDERLINED] = val;
     return this;
 }
 
 Style* Style::Italic(bool val) {
-    modifiers[ITALIC] = val;
+    _modifiers[ITALIC] = val;
     return this;
 }
 
 Style* Style::BG(LibTesix::Color val) {
-    col._bg = val;
+    _col._bg = val;
     return this;
 }
 
 Style* Style::FG(LibTesix::Color val) {
-    col._fg = val;
+    _col._fg = val;
     return this;
 }
 
 Style* Style::Color(ColorPair val) {
-    col = val;
+    _col = val;
     return this;
 }
 
 bool Style::GetMod(States state) const {
-    return modifiers[state];
+    return _modifiers[state];
+}
+
+const ColorPair& Style::GetColor() const {
+    return _col;
 }
 
 std::string Style::GetEscapeCode(const Style& state) const {
     std::vector<std::pair<uint64_t, bool>> bool_changes(STATES_COUNT);
 
     for(int64_t i = 0; i < STATES_COUNT; i++) {
-        if(modifiers[i] != state.GetMod(static_cast<States>(i))) {
-            bool_changes.emplace_back(i, modifiers[i]);
+        if(_modifiers[i] != state.GetMod(static_cast<States>(i))) {
+            bool_changes.emplace_back(i, _modifiers[i]);
         }
     }
 
@@ -132,34 +127,34 @@ std::string Style::GetEscapeCode(const Style& state) const {
         ret.append(ESCAPE_CODES[2 * change.first + change.second]);
     }
 
-    if(!(col._fg == state.col._fg)) {
-        ret.append(
-            "\033[38;2;" + std::to_string(col._fg.r) + ";" + std::to_string(col._fg.g) + ";" + std::to_string(col._fg.b) + "m");
+    if(!(_col._fg == state._col._fg)) {
+        ret.append("\033[38;2;" + std::to_string(_col._fg.r) + ";" + std::to_string(_col._fg.g) + ";" +
+                   std::to_string(_col._fg.b) + "m");
     }
 
-    if(!(col._bg == state.col._bg)) {
-        ret.append(
-            "\033[48;2;" + std::to_string(col._bg.r) + ";" + std::to_string(col._bg.g) + ";" + std::to_string(col._bg.b) + "m");
+    if(!(_col._bg == state._col._bg)) {
+        ret.append("\033[48;2;" + std::to_string(_col._bg.r) + ";" + std::to_string(_col._bg.g) + ";" +
+                   std::to_string(_col._bg.b) + "m");
     }
 
     return ret;
 }
 
 void Style::Reset() {
-    col = STANDARD_COLORPAIR;
+    _col = STANDARD_COLORPAIR;
 
-    modifiers.reset();
+    _modifiers.reset();
 }
 
 bool Style::operator==(const Style& other) const {
-    return col == other.col && modifiers == other.modifiers && name == other.name;
+    return _col == other._col && _modifiers == other._modifiers && _name == other._name;
 }
 
 StyleAllocator::StyleAllocator() {
-    _styles["__default__"] = std::make_unique<Style>("__default__");
+    _styles["__default__"] = std::make_unique<Style>(Style("__default__"));
 }
 
-Style& StyleAllocator::operator[](const std::string& name) {
+Style& StyleAllocator::operator[](const tiny_utf8::string& name) {
     if(_styles.contains(name)) {
         return *_styles[name].get();
     }
@@ -167,11 +162,11 @@ Style& StyleAllocator::operator[](const std::string& name) {
     throw std::runtime_error("Unkown style! << StyleAllocator::operator[]");
 }
 
-Style& StyleAllocator::Add(const std::string& name) {
+Style& StyleAllocator::Add(const tiny_utf8::string& name) {
     if(_styles.contains(name)) {
         return *_styles[name].get();
     } else {
-        _styles[name] = std::make_unique<Style>(name);
+        _styles[name] = std::make_unique<Style>(Style(name));
         return *_styles[name].get();
     }
 }

@@ -115,12 +115,18 @@ void StyledSegmentString::Insert(const tiny_utf8::string& str, const Style& styl
 
     Segment& seg = *_segments[segment_index];
 
-    if(IsInSegment(index, seg) && index != seg._start) {
+    bool in_segment   = IsInSegment(index, seg);
+    bool can_insert   = in_segment && style == seg._style;
+    bool should_split = in_segment && index != seg._start;
+
+    if(can_insert) {
+        seg._str.insert(index - seg._start, str);
+    } else if(should_split) {
         _SegmentPtr split = SplitSegment(seg, index - seg._start, 0);
         split->_start += str.length();
+        InsertSegment(std::move(split), segment_index + 1);
 
         InsertSegment(str, style, index, segment_index + 1);
-        InsertSegment(std::move(split), segment_index + 1);
     } else {
         InsertSegment(str, style, index, segment_index + 1);
     }

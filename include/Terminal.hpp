@@ -11,14 +11,11 @@ static const int STDIN = 0;
 
 namespace LibTesix {
 
-inline Style state("state", ColorPair(Color(-1, -1, -1), Color(-1, -1, -1)));
-
 int InitScreen();
 
 void Interupt(int signal);
 void Exit();
 
-void Clear(const Style* style);
 void Update();
 
 uint64_t GetTerminalWidth();

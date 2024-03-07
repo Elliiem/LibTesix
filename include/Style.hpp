@@ -5,6 +5,7 @@
 #include <cstring>
 #include <map>
 #include <memory>
+#include <tinyutf8/tinyutf8.h>
 #include <vector>
 
 namespace LibTesix {
@@ -36,16 +37,14 @@ struct ColorPair {
 
 const ColorPair STANDARD_COLORPAIR(STANDARD_FG, STANDARD_BG);
 
-struct Style {
+class Style {
     friend class StyleAllocator;
 
-    // The indicies of modifiers in LibTesix::Style::bool_state
+  public:
+    // The indicies of _modifiers in LibTesix::Style::bool_state
     enum States { BOLD, FAINT, BLINKING, REVERSE, UNDERLINED, ITALIC, STATES_COUNT };
 
-    Style(const std::string& name);                // TODO make private
-    Style(const std::string& name, ColorPair col); // TODO make private
-
-    // Setters for modifiers
+    // Setters for _modifiers
     Style* Bold(bool val);
     Style* Faint(bool val);
     Style* Blinking(bool val);
@@ -67,29 +66,29 @@ struct Style {
     bool operator==(const Style& other) const;
 
   private:
-    Style();
+    Style(const tiny_utf8::string& name);
 
-    //  States of modifiers eg. bold, italic or blinking text
-    //  these modifiers are stored in this vector at the values in the enum States, defined in the Style source file
-    std::bitset<STATES_COUNT> modifiers;
+    //  States of _modifiers eg. bold, italic or blinking text
+    //  these _modifiers are stored in this vector at the values in the enum States, defined in the Style source file
+    std::bitset<STATES_COUNT> _modifiers;
 
     // The name of the Style used to identify styles when exporting or importing from json
-    std::string name;
+    const tiny_utf8::string _name;
 
     // The color of the Style
-    ColorPair col;
+    ColorPair _col;
 };
 
 class StyleAllocator {
   public:
     StyleAllocator();
 
-    Style& operator[](const std::string& name);
+    Style& operator[](const tiny_utf8::string& name);
 
-    Style& Add(const std::string& name);
+    Style& Add(const tiny_utf8::string& name);
 
   private:
-    std::map<std::string, std::unique_ptr<Style>> _styles;
+    std::map<tiny_utf8::string, std::unique_ptr<Style>> _styles;
 };
 
 // TODO let user define this

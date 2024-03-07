@@ -37,12 +37,6 @@ void Exit() {
     tcsetattr(STDIN, TCSANOW, &attr);
 }
 
-void Clear(const Style* style) {
-    printf(style->GetEscapeCode(state).c_str());
-    state = *style;
-    printf("\033[2J\033[0;0f\n");
-}
-
 void Update() {
     printf("\033[0;0f\n");
 }

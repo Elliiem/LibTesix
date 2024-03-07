@@ -11,27 +11,30 @@
 namespace LibTesix {
 
 /**
- * @brief Stores a string with a styles. The string is split into segments which store their style,
- * content and the index where they start. Segments can never overlap so it is illegal to have a
- * segment at 0 with the string "foo" and a segment that starts at 2 because the first segment
- * occupies the second index since it is 3 characters long. This struct is used mostly internally,
- * you should use StyledString instead of this in the most cases. The difference between this and
- * StyledString is that this allows the string to have holes. The segments dont need to be after one
- * another so it would be legal to have a string that looks like this "foo**bar" (the stars represent
- * empty spaces in this example), this may seem to make no sense but it allows to handle the space
- * character. For example if I want to print this "foo**bar" to the screen the stars again are
- * empty spaces so they shouldnt affect what is already on the screen so if there was "########" on
- * the screen where I want to draw, the result would be "foo  bar" if we coudnt have holes in the
- * string, with holest the result would be "foo##bar" wich is very useful because non contiugous
- * data doesnt have to be stored in seperate objects.
+ * @brief Stores a styled string. Unlike StyledString this allows segments to be non-contiguos.
+ * This is the base class of StyledString.
+ *
  */
 class StyledSegmentString {
   public:
     /**
-     * @brief A segment of the string. this is described in more detail in the description of
-     * StyledSegmentString
+     * @brief A segment that stores information about a part of the string. For example, if we have the string "foobar"
+     * and 'foo' is blue, and 'bar' is red, 'foo' would be a segment, and 'bar' would be a segment. So, in segments, the
+     * string would look something like this: [{"foo", blue, 0}, {"bar", red, 3}]. The numbers signify the start or
+     * index of the segment within the overall string. 'foo' starts at index 0, and 'bar' starts at 3. Segments have one
+     * rule within StyledSegmentString: they cant overlap. Overlap means the start of one segment is within the
+     * contents of another. For example, this would be illegal: [{"foo", blue, 0}, {"bar", red, 1}]; the start of 'bar'
+     * could be >= 3 but not < 3 because 'foo' "occupies" these indices. StyledString further restricts segments; here,
+     * they need to be contiguous. The segments need to be one after another; 'bar' here would need to start at 3. Any
+     * less, they overlap; any more, they arent one after another, so there is a hole in the string.
      */
     struct Segment {
+        /**
+         * @brief Constructor of Segment
+         * @param str The contents/string of the segment
+         * @param style The style of the segment
+         * @param start The start/index of the segment in the overall string
+         */
         Segment(const tiny_utf8::string& str, const Style& style, uint64_t start);
 
         uint64_t          _start;
@@ -40,7 +43,7 @@ class StyledSegmentString {
     };
 
     /**
-     * @brief Stores a character with its style
+     * @brief Stores a character with a style
      */
     struct StyledChar {
       public:
@@ -48,58 +51,54 @@ class StyledSegmentString {
         const Style* _style;
     };
 
+    /**
+     * @brief Default constructor of StyledSegmenString
+     */
     StyledSegmentString() = default;
-    StyledSegmentString(const StyledSegmentString& str);
 
     /**
-     * @brief The use of pointers in _segments is necessitated by the fucking inability to use const Style& directly in
-     * segments. This is due to std::vector::erase requiring items to be assignable, which is fucking impossible with
-     * references, let alone constants. Therefore, the items are wrapped by a pointer, allowing them to be assigned
-     * instead of the items themselves. (EUDAAA!!!!)
+     * @brief Copy constructor of StyledSegmentString
+     * @param str The string to copy
      */
+    StyledSegmentString(const StyledSegmentString& str);
+
     std::vector<std::unique_ptr<Segment>> _segments;
 
   public:
     /**
      * @brief Appends a segment to the string
+     * @param str The contents of the new segment
+     * @param style The style of the segment
      */
     void Append(const tiny_utf8::string& str, const Style& style);
 
     /**
      * @brief Erases the string in the given range
+     * @param start The starting index(g) of the range
+     * @param end The ending index(g) of the range
      */
     void Erase(std::size_t start = 0, std::size_t end = SIZE_MAX);
 
     /**
-     * @brief Adds a segment at the index, overwrites other segments
+     * @brief Adds a segment at the index(g), overwrites other segments
+     * @param str The contents of the new segment
+     * @param style The style of the segment
+     * @param index The index(g) where the segment should be inserted
      */
     void Add(const tiny_utf8::string& str, const Style& style, std::size_t index);
 
     /**
-     * @brief Inserts a segment at the index, unlike Add moves following segments if there is no
-     * space
+     * @brief Inserts a segment at the index(g), moves following segments back if there is no space
+     * @param str The contents of the new segment
+     * @param style The style of the segment
+     * @param index The index(g) where the segment should be inserted
      */
     void Insert(const tiny_utf8::string& str, const Style& style, std::size_t index);
 
     /**
-     * @brief Gets the lenght of the string ie. the start of the last segment plus the lenght of its
-     * string
+     * @brief Gets the length of the string, i.e., the start of the last segment plus the length of its string.
      */
     uint64_t Len() const;
-
-    // private:
-
-    /**
-     * @brief Finds the index of the segment containing the given index with binary search
-     */
-    std::size_t GetSegmentIndex(std::size_t index) const;
-
-    /**
-     * @brief Inserts a segment to the string automatically merges if suitable.
-     * The caller needs to make sure the segment is legal.
-     */
-    void InsertSegment(const tiny_utf8::string& str, const Style& style, uint64_t start, std::size_t index);
-    void InsertSegment(std::unique_ptr<Segment> seg, std::size_t index);
 
 #ifdef NDEBUG
     /**
@@ -107,6 +106,31 @@ class StyledSegmentString {
      */
     void PrintDebug() const;
 #endif
+
+  private:
+    /**
+     * @brief Finds the index of the segment containing the given index with binary search.
+     * @param index The index to search for.
+     * @return The index of the segment containing the given index.
+     */
+    std::size_t GetSegmentIndex(std::size_t index) const;
+
+    /**
+     * @brief Inserts a segment to the string automatically merges if suitable.
+     * The caller needs to make sure the segment is legal.
+     * @param str The contents of the new segment
+     * @param style The style of the segment
+     * @param index The index(s) where to insert
+     */
+    void InsertSegment(const tiny_utf8::string& str, const Style& style, uint64_t start, std::size_t index);
+
+    /**
+     * @brief Inserts a segment to the string automatically merges if suitable.
+     * The caller needs to make sure the segment is legal.
+     * @param seg The new segment
+     * @param index The index(s) where to insert
+     */
+    void InsertSegment(std::unique_ptr<Segment> seg, std::size_t index);
 };
 
 } // namespace LibTesix
