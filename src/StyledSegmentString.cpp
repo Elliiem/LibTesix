@@ -9,15 +9,15 @@ void StyledSegmentString::Append(const tiny_utf8::string& str, const Style& styl
     InsertSegment(str, style, Len(), _segments.size());
 }
 
-void StyledSegmentString::InsertSegment(
+bool StyledSegmentString::InsertSegment(
     const tiny_utf8::string& str, const Style& style, uint64_t start, std::size_t index) {
-    InsertSegment(CreateSegment(str, style, start), index);
+    return InsertSegment(CreateSegment(str, style, start), index);
 }
 
-void StyledSegmentString::InsertSegment(std::unique_ptr<Segment> seg, std::size_t index) {
+bool StyledSegmentString::InsertSegment(std::unique_ptr<Segment> seg, std::size_t index) {
     if(_segments.empty()) {
         _segments.push_back(std::move(seg));
-        return;
+        return false;
     }
 
     Segment& prev = *GetPrev(index, _segments);
@@ -25,12 +25,40 @@ void StyledSegmentString::InsertSegment(std::unique_ptr<Segment> seg, std::size_
 
     if(IsMergable(prev, *seg)) {
         prev._str.append(seg->_str);
+        return true;
     } else if(IsMergable(*seg, next)) {
         next._str.insert(0, seg->_str);
         next._start = seg->_start;
+        return true;
     } else {
         _segments.insert(_segments.begin() + index, std::move(seg));
+        return false;
     }
+}
+
+bool StyledSegmentString::MoveSegment(std::size_t segment_index, uint64_t dest) {
+    if(segment_index >= _segments.size()) {
+        throw std::range_error("Index is out of bounds! << StyledSegmentString::MoveSegment()");
+    }
+
+    Segment& seg = *_segments[segment_index];
+
+    std::size_t new_segment_index = GetSegmentIndex(dest);
+
+    Segment& prev = *GetPrev(new_segment_index, _segments);
+    Segment& next = *GetNext(new_segment_index, _segments);
+
+    if(IsMergable(prev, seg._str, seg._style, dest)) {
+        prev._str.append(seg._str);
+    } else if(IsMergable(seg._str, seg._style, dest, next)) {
+        next._str.insert(0, seg._str);
+    } else {
+        seg._start = dest;
+        return false;
+    }
+
+    _segments.erase(_segments.begin() + segment_index);
+    return true;
 }
 
 #ifdef NDEBUG
@@ -51,7 +79,16 @@ void StyledSegmentString::Erase(std::size_t start, std::size_t end) {
     Segment& start_seg = *_segments[start_index];
     Segment& end_seg   = *_segments[end_index];
 
-    if(LibTesix::IsRangeInSegment(start, end, start_seg)) {
+    bool is_in_single_segment = LibTesix::IsRangeInSegment(start, end, start_seg);
+
+    if(is_in_single_segment) {
+        bool should_erase = start == start_seg._start && end + 1 == start_seg._start + start_seg._str.length();
+
+        if(should_erase) {
+            _segments.erase(_segments.begin() + start_index);
+            return;
+        }
+
         _SegmentPtr split = SplitSegment(start_seg, start - start_seg._start, end - start + 1);
 
         InsertSegment(std::move(split), start_index + 1);

@@ -62,6 +62,7 @@ class StyledSegmentString {
      */
     StyledSegmentString(const StyledSegmentString& str);
 
+  protected:
     std::vector<std::unique_ptr<Segment>> _segments;
 
   public:
@@ -107,7 +108,7 @@ class StyledSegmentString {
     void PrintDebug() const;
 #endif
 
-  private:
+  protected:
     /**
      * @brief Finds the index of the segment containing the given index with binary search.
      * @param index The index to search for.
@@ -120,9 +121,10 @@ class StyledSegmentString {
      * The caller needs to make sure the segment is legal.
      * @param str The contents of the new segment
      * @param style The style of the segment
+     * @param start The start of the segment
      * @param index The index(s) where to insert
      */
-    void InsertSegment(const tiny_utf8::string& str, const Style& style, uint64_t start, std::size_t index);
+    bool InsertSegment(const tiny_utf8::string& str, const Style& style, uint64_t start, std::size_t index);
 
     /**
      * @brief Inserts a segment to the string automatically merges if suitable.
@@ -130,7 +132,14 @@ class StyledSegmentString {
      * @param seg The new segment
      * @param index The index(s) where to insert
      */
-    void InsertSegment(std::unique_ptr<Segment> seg, std::size_t index);
+    bool InsertSegment(std::unique_ptr<Segment> seg, std::size_t index);
+
+    /**
+     * @brief Moves a segment to the destination and merges if possible, doesnt check if the move is legal
+     * @param segment_index The index of the segmnent
+     * @param dest The destination
+     */
+    bool MoveSegment(std::size_t segment_index, uint64_t dest);
 };
 
 } // namespace LibTesix
