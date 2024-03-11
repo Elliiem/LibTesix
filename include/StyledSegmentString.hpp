@@ -13,7 +13,6 @@ namespace LibTesix {
 /**
  * @brief Stores a styled string. Unlike StyledString this allows segments to be non-contiguos.
  * This is the base class of StyledString.
- *
  */
 class StyledSegmentString {
   public:
@@ -47,8 +46,26 @@ class StyledSegmentString {
      */
     struct StyledChar {
       public:
-        char32_t     _character;
-        const Style* _style;
+        StyledChar(char32_t character, const Style& style);
+
+        char32_t     _char;
+        const Style& _style;
+    };
+
+    struct Reference {
+        friend StyledSegmentString;
+
+      public:
+        Reference& operator=(const StyledChar& character);
+        Reference& operator=(const Reference& character);
+
+        operator StyledChar();
+
+      private:
+        std::size_t          _index;
+        StyledSegmentString& _src;
+
+        Reference(StyledSegmentString& src, std::size_t index);
     };
 
     /**
@@ -97,9 +114,18 @@ class StyledSegmentString {
     void Insert(const tiny_utf8::string& str, const Style& style, std::size_t index);
 
     /**
+     * @brief Sets the character at index(g) to the provided one
+     * @param character The new character
+     * @param index The index(g) to replace
+     */
+    void Set(const StyledChar& character, std::size_t index);
+
+    /**
      * @brief Gets the length of the string, i.e., the start of the last segment plus the length of its string.
      */
     uint64_t Len() const;
+
+    Reference operator[](std::size_t index);
 
 #ifdef NDEBUG
     /**
@@ -123,6 +149,7 @@ class StyledSegmentString {
      * @param style The style of the segment
      * @param start The start of the segment
      * @param index The index(s) where to insert
+     * @returns Whether or not the inserted segment was inserted by merging
      */
     bool InsertSegment(const tiny_utf8::string& str, const Style& style, uint64_t start, std::size_t index);
 
@@ -131,6 +158,7 @@ class StyledSegmentString {
      * The caller needs to make sure the segment is legal.
      * @param seg The new segment
      * @param index The index(s) where to insert
+     * @returns Whether or not the inserted segment was inserted by merging
      */
     bool InsertSegment(std::unique_ptr<Segment> seg, std::size_t index);
 
@@ -138,6 +166,7 @@ class StyledSegmentString {
      * @brief Moves a segment to the destination and merges if possible, doesnt check if the move is legal
      * @param segment_index The index of the segmnent
      * @param dest The destination
+     * @returns Whether or not the inserted segment was moved by merging
      */
     bool MoveSegment(std::size_t segment_index, uint64_t dest);
 };

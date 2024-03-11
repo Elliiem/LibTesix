@@ -329,4 +329,18 @@ template<> inline void SegmentReplaceInplace<_SegmentPtr>(
     }
 }
 
+template<typename T> inline std::size_t GetSegmentEnd(const T& seg) {
+    throw std::runtime_error("Unsupported Type! << GetSegmentEnd()");
+}
+
+template<> inline std::size_t GetSegmentEnd<_Segment>(const _Segment& seg) {
+    bool longer_than_zero = seg._str.length() > 0;
+    return seg._start + seg._str.length() - longer_than_zero;
+}
+
+template<> inline std::size_t GetSegmentEnd<_SegmentPtr>(const _SegmentPtr& seg) {
+    bool longer_than_zero = seg->_str.length() > 0;
+    return seg->_start + seg->_str.length() - longer_than_zero;
+}
+
 } // namespace LibTesix
