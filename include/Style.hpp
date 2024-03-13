@@ -68,8 +68,8 @@ class Style {
   private:
     Style(const tiny_utf8::string& name);
 
-    //  States of _modifiers eg. bold, italic or blinking text
-    //  these _modifiers are stored in this vector at the values in the enum States, defined in the Style source file
+    //  States of modifiers eg. bold, italic or blinking text
+    //  these modifiers are stored in this vector at the values in the States enum
     std::bitset<STATES_COUNT> _modifiers;
 
     // The name of the Style used to identify styles when exporting or importing from json
@@ -90,9 +90,5 @@ class StyleAllocator {
   private:
     std::map<tiny_utf8::string, std::unique_ptr<Style>> _styles;
 };
-
-// TODO let user define this
-inline StyleAllocator style_allocator;
-inline const Style&   STANDARD_STYLE = style_allocator["__default__"];
 
 } // namespace LibTesix

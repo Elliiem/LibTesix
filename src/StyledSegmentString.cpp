@@ -37,9 +37,11 @@ bool StyledSegmentString::InsertSegment(std::unique_ptr<Segment> seg, std::size_
 }
 
 bool StyledSegmentString::MoveSegment(std::size_t segment_index, uint64_t dest) {
+#ifndef LIBTESIX_NO_SAFETY
     if(segment_index >= _segments.size()) {
         throw std::range_error("Index is out of bounds! << StyledSegmentString::MoveSegment()");
     }
+#endif
 
     Segment& seg = *_segments[segment_index];
 
@@ -69,9 +71,11 @@ void StyledSegmentString::PrintDebug() const {
 }
 #endif
 
-void StyledSegmentString::Erase(std::size_t start, std::size_t end) {
+void StyledSegmentString::Erase(std::size_t start, std::size_t len) {
     if(_segments.empty()) return;
     if(start >= Len()) return;
+
+    std::size_t end = start + len - 1;
 
     uint64_t start_index = GetSegmentIndex(start);
     uint64_t end_index   = GetSegmentIndex(end);
@@ -82,33 +86,31 @@ void StyledSegmentString::Erase(std::size_t start, std::size_t end) {
     bool is_in_single_segment = LibTesix::IsRangeInSegment(start, end, start_seg);
 
     if(is_in_single_segment) {
-        bool at_start = start == start_seg._start;
-        bool at_end   = end == GetSegmentEnd(start_seg);
+        bool at_start = start <= start_seg._start;
+        bool at_end   = end >= GetSegmentEnd(start_seg);
 
-        bool erases_segment = at_start && at_end;
+        bool should_erase_segment = at_start && at_end;
 
-        if(erases_segment) {
+        if(should_erase_segment) {
             _segments.erase(_segments.begin() + start_index);
             return;
         }
 
-        _SegmentPtr split = SplitSegment(start_seg, start - start_seg._start, end - start + 1);
-
-        InsertSegment(std::move(split), start_index + 1);
+        InsertSegment(SplitSegment(start_seg, start - start_seg._start, end - start + 1), start_index + 1);
     } else {
-        bool erase_start = start <= start_seg._start;
-        bool erase_end   = end >= GetSegmentEnd(end_seg);
+        bool should_erase_start = start <= start_seg._start;
+        bool should_erase_end   = end >= GetSegmentEnd(end_seg);
 
-        auto erase_start_iter = _segments.begin() + start_index + !erase_start;
-        auto erase_end_iter   = _segments.begin() + end_index + erase_end;
+        auto erase_start_iter = _segments.begin() + start_index + !should_erase_start;
+        auto erase_end_iter   = _segments.begin() + end_index + should_erase_end;
 
         _segments.erase(erase_start_iter, erase_end_iter);
 
-        if(!erase_start) {
-            SegmentErase(start_seg, start - start_seg._start, SIZE_MAX);
+        if(!should_erase_start) {
+            SegmentErase(start_seg, start - start_seg._start);
         }
 
-        if(!erase_end) {
+        if(!should_erase_end) {
             SegmentErase(end_seg, 0, end - end_seg._start);
         }
     }
@@ -121,6 +123,8 @@ StyledSegmentString::StyledSegmentString(const StyledSegmentString& str) {
 }
 
 void StyledSegmentString::Add(const tiny_utf8::string& str, const Style& style, std::size_t index) {
+    if(str.empty()) return;
+
     if(_segments.empty()) {
         _segments.push_back(CreateSegment(str, style, index));
         return;
@@ -129,16 +133,21 @@ void StyledSegmentString::Add(const tiny_utf8::string& str, const Style& style, 
     std::size_t start = index;
     std::size_t end   = index + str.length() - 1;
 
-    std::size_t start_index = GetSegmentIndex(index);
+    std::size_t segment_index = GetSegmentIndex(index);
 
-    Segment& seg = *_segments[start_index];
+    Segment& seg = *_segments[segment_index];
 
-    if(IsRangeInSegment(start, end, seg) && style == seg._style) {
+    bool within_start_segment = IsRangeInSegment(start, end, seg);
+    bool is_same_style        = style == seg._style;
+
+    if(within_start_segment && is_same_style) {
         SegmentReplaceInplace(seg, str, index - seg._start);
     } else {
-        Erase(start, end);
+        Erase(start, str.length());
 
-        InsertSegment(str, style, index, start_index + 1);
+        bool should_insert_in_front = !(index <= seg._start);
+
+        InsertSegment(str, style, index, segment_index + should_insert_in_front);
     }
 }
 
@@ -176,7 +185,7 @@ void StyledSegmentString::Insert(const tiny_utf8::string& str, const Style& styl
 uint64_t StyledSegmentString::Len() const {
     if(_segments.empty()) return 0;
 
-    return GetSegmentEnd(_segments.back());
+    return GetSegmentEnd(_segments.back()) + 1;
 }
 
 void StyledSegmentString::Set(const StyledChar& character, std::size_t index) {
@@ -194,8 +203,13 @@ void StyledSegmentString::Set(const StyledChar& character, std::size_t index) {
     if(is_in_segment && is_same_style) {
         seg._str[index - seg._start];
     } else {
-        Erase(index, index);
+        Erase(index, 1);
     }
+
+    bool should_insert_in_front = !(index <= seg._start);
+
+    tiny_utf8::string char_str(character._char);
+    InsertSegment(char_str, character._style, index, segment_index + should_insert_in_front);
 }
 
 std::size_t StyledSegmentString::GetSegmentIndex(std::size_t index) const {
@@ -238,24 +252,38 @@ StyledSegmentString::Reference::Reference(StyledSegmentString& src, std::size_t 
     _index = index;
 }
 
-StyledSegmentString::Reference::operator LibTesix::StyledSegmentString::StyledChar() {
-    const Segment& seg = *_src._segments[_src.GetSegmentIndex(_index)];
-
-    if(IsInSegment(_index, seg)) {
-        return StyledChar(0, STANDARD_STYLE);
-    } else {
-        char32_t character = seg._str[_index - seg._start];
-
-        return StyledChar(character, seg._style);
-    }
-}
-
 StyledSegmentString::Reference StyledSegmentString::operator[](std::size_t index) {
     return Reference(*this, index);
 }
 
 StyledSegmentString::StyledChar::StyledChar(char32_t character, const Style& style) : _style(style) {
     _char = character;
+}
+
+void StyledSegmentString::Reference::operator=(const StyledChar& character) {
+    _src.Set(character, _index);
+}
+
+StyledSegmentString::Reference::operator StyledChar() const {
+    const Segment& seg = *_src._segments[_src.GetSegmentIndex(_index)];
+
+#ifndef LIBTESIX_NO_SAFETY
+    if(!IsInSegment(_index, seg)) {
+        throw std::runtime_error("Reference points to a void character! << Reference::operator StyledChar()");
+    }
+#endif
+
+    return StyledChar(seg._str[_index - seg._start], seg._style);
+}
+
+void StyledSegmentString::Reference::operator=(const Reference& character) {
+    _src.Set(character, _index);
+}
+
+bool StyledSegmentString::Reference::IsVoid() {
+    const Segment& seg = *_src._segments[_src.GetSegmentIndex(_index)];
+
+    return !IsInSegment(_index, seg);
 }
 
 } // namespace LibTesix

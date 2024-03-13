@@ -11,6 +11,8 @@ option(COMPILE_EXAMPLES "Should the examples be compiled" ON)
 
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
 
+add_definitions("-DNDEBUG")
+#add_definitions("-DLIBTESIX_NO_SAFETY")
 
 find_package(ICU 72.1 COMPONENTS uc REQUIRED)
 

@@ -1,7 +1,5 @@
 #pragma once
 
-#define NDEBUG
-
 #include "Style.hpp"
 
 #include <cinttypes>
@@ -56,15 +54,17 @@ class StyledSegmentString {
         friend StyledSegmentString;
 
       public:
-        Reference& operator=(const StyledChar& character);
-        Reference& operator=(const Reference& character);
+        void operator=(const StyledChar& character);
+        void operator=(const Reference& character);
 
-        operator StyledChar();
+        operator StyledChar() const;
 
-      private:
+        bool IsVoid();
+
         std::size_t          _index;
         StyledSegmentString& _src;
 
+      private:
         Reference(StyledSegmentString& src, std::size_t index);
     };
 
@@ -95,7 +95,7 @@ class StyledSegmentString {
      * @param start The starting index(g) of the range
      * @param end The ending index(g) of the range
      */
-    void Erase(std::size_t start = 0, std::size_t end = SIZE_MAX);
+    void Erase(std::size_t start = 0, std::size_t len = SIZE_MAX);
 
     /**
      * @brief Adds a segment at the index(g), overwrites other segments
@@ -121,7 +121,8 @@ class StyledSegmentString {
     void Set(const StyledChar& character, std::size_t index);
 
     /**
-     * @brief Gets the length of the string, i.e., the start of the last segment plus the length of its string.
+     * @brief Gets the length of the string.
+     * @returns The lenght (The end of the last segment + 1)
      */
     uint64_t Len() const;
 
@@ -136,9 +137,10 @@ class StyledSegmentString {
 
   protected:
     /**
-     * @brief Finds the index of the segment containing the given index with binary search.
+     * @brief Finds the index of the segment owning the given index with binary search. A segment owns a index if it is
+     * after its start and before the next segment, the first segment owns everything prior to it
      * @param index The index to search for.
-     * @return The index of the segment containing the given index.
+     * @returns The index of the segment containing the given index.
      */
     std::size_t GetSegmentIndex(std::size_t index) const;
 

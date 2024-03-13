@@ -180,6 +180,20 @@ inline _SegmentPtr CreateSegment(const tiny_utf8::string& str, const Style& styl
     return std::make_unique<_Segment>(str, style, start);
 }
 
+template<typename T> inline std::size_t GetSegmentEnd(const T& seg) {
+    throw std::runtime_error("Unsupported Type! << GetSegmentEnd()");
+}
+
+template<> inline std::size_t GetSegmentEnd<_Segment>(const _Segment& seg) {
+    bool longer_than_zero = seg._str.length() > 0;
+    return seg._start + seg._str.length() - longer_than_zero;
+}
+
+template<> inline std::size_t GetSegmentEnd<_SegmentPtr>(const _SegmentPtr& seg) {
+    bool longer_than_zero = seg->_str.length() > 0;
+    return seg->_start + seg->_str.length() - longer_than_zero;
+}
+
 /**
  * @brief Split a segment at a specified index and erase a specified number of characters.
  *
@@ -199,12 +213,16 @@ template<typename T> inline _SegmentPtr SplitSegment(T& seg, std::size_t index, 
  * @brief SpecialiZation of SplitSegment for Segment
  */
 template<> inline _SegmentPtr SplitSegment<_Segment>(_Segment& seg, std::size_t index, std::size_t erase_len) {
+#ifndef LIBTESIX_NO_SAFETY
     if(index > seg._str.length()) {
         throw std::range_error("Index is out of Bounds! << SplitSegment()");
     }
+#endif
 
     if(index == 0) {
+        seg._start = std::min(GetSegmentEnd(seg), seg._start + erase_len);
         seg._str.erase(0, erase_len);
+
         return std::move(CreateSegment("", seg._style, 0));
     } else {
         bool is_greater_than_remaining = erase_len > seg._str.length() - index;
@@ -223,12 +241,16 @@ template<> inline _SegmentPtr SplitSegment<_Segment>(_Segment& seg, std::size_t 
  * @brief SpecialiZation of SplitSegment for std::unique_ptr<Segment>
  */
 template<> inline _SegmentPtr SplitSegment<_SegmentPtr>(_SegmentPtr& seg, std::size_t index, std::size_t erase_len) {
+#ifndef LIBTESIX_NO_SAFETY
     if(index > seg->_str.length()) {
         throw std::range_error("Index is out of Bounds! << SplitSegment()");
     }
+#endif
 
     if(index == 0) {
+        seg->_start = std::min(GetSegmentEnd(seg), seg->_start + erase_len);
         seg->_str.erase(0, erase_len);
+
         return std::move(CreateSegment("", seg->_style, 0));
     } else {
         bool is_greater_than_remaining = erase_len > seg->_str.length() - index;
@@ -256,9 +278,11 @@ template<typename T> inline void SegmentErase(T& seg, std::size_t index = 0, std
  * @brief Specialization of SegmentErase for Segment
  */
 template<> inline void SegmentErase<_Segment>(_Segment& seg, std::size_t index, std::size_t len) {
+#ifndef LIBTESIX_NO_SAFETY
     if(index >= seg._str.length()) {
         throw std::range_error("Index is out of bounds! << SegmentErase()");
     }
+#endif
 
     std::size_t old_len = seg._str.length();
 
@@ -273,9 +297,11 @@ template<> inline void SegmentErase<_Segment>(_Segment& seg, std::size_t index, 
  * @brief Specialization of SegmentErase for std::unique_ptr<Segment>
  */
 template<> inline void SegmentErase<_SegmentPtr>(_SegmentPtr& seg, std::size_t index, std::size_t len) {
+#ifndef LIBTESIX_NO_SAFETY
     if(index >= seg->_str.length()) {
         throw std::range_error("Index is out of bounds! << SegmentErase()");
     }
+#endif
 
     std::size_t old_len = seg->_str.length();
 
@@ -302,9 +328,11 @@ template<typename T> inline void SegmentReplaceInplace(
  */
 template<> inline void SegmentReplaceInplace<_Segment>(
     _Segment& seg, const tiny_utf8::string& str, std::size_t index, std::size_t len) {
+#ifndef LIBTESIX_NO_SAFETY
     if(index >= seg._str.length()) {
         throw std::runtime_error("Index is out of bounds! <<  SegmentReplaceInplace()");
     }
+#endif
 
     len = std::min(len, std::min(str.length(), seg._str.length() - index));
 
@@ -318,29 +346,17 @@ template<> inline void SegmentReplaceInplace<_Segment>(
  */
 template<> inline void SegmentReplaceInplace<_SegmentPtr>(
     _SegmentPtr& seg, const tiny_utf8::string& str, std::size_t index, std::size_t len) {
+#ifndef LIBTESIX_NO_SAFETY
     if(index >= seg->_str.length()) {
         throw std::runtime_error("Index is out of bounds! <<  SegmentReplaceInplace()");
     }
+#endif
 
     len = std::min(len, std::min(str.length(), seg->_str.length() - index));
 
     for(uint64_t i = 0; i < len; i++) {
         seg->_str[i + index] = str[i];
     }
-}
-
-template<typename T> inline std::size_t GetSegmentEnd(const T& seg) {
-    throw std::runtime_error("Unsupported Type! << GetSegmentEnd()");
-}
-
-template<> inline std::size_t GetSegmentEnd<_Segment>(const _Segment& seg) {
-    bool longer_than_zero = seg._str.length() > 0;
-    return seg._start + seg._str.length() - longer_than_zero;
-}
-
-template<> inline std::size_t GetSegmentEnd<_SegmentPtr>(const _SegmentPtr& seg) {
-    bool longer_than_zero = seg->_str.length() > 0;
-    return seg->_start + seg->_str.length() - longer_than_zero;
 }
 
 } // namespace LibTesix
