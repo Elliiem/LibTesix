@@ -45,15 +45,15 @@ class Style {
     enum States { BOLD, FAINT, BLINKING, REVERSE, UNDERLINED, ITALIC, STATES_COUNT };
 
     // Setters for _modifiers
-    Style* Bold(bool val);
-    Style* Faint(bool val);
-    Style* Blinking(bool val);
-    Style* Reverse(bool val);
-    Style* Underlined(bool val);
-    Style* Italic(bool val);
-    Style* BG(Color val);
-    Style* FG(Color val);
-    Style* Color(ColorPair val);
+    Style& Bold(bool val);
+    Style& Faint(bool val);
+    Style& Blinking(bool val);
+    Style& Reverse(bool val);
+    Style& Underlined(bool val);
+    Style& Italic(bool val);
+    Style& BG(Color val);
+    Style& FG(Color val);
+    Style& Color(ColorPair val);
 
     bool             GetMod(States state) const;
     const ColorPair& GetColor() const;

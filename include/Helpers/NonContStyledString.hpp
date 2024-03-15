@@ -1,11 +1,10 @@
 #pragma once
 
-#include "../StyledSegmentString.hpp"
+#include "../NonContStyledString.hpp"
 
 namespace LibTesix {
 
-using _Segment    = StyledSegmentString::Segment;
-using _SegmentPtr = std::unique_ptr<_Segment>;
+using _SegmentPtr = std::unique_ptr<Segment>;
 
 /**
  * @brief Checks if the Segment represented by str, style and start can be merged to the start of cmp
@@ -22,8 +21,8 @@ inline bool IsMergable(const tiny_utf8::string& str, const Style& style, const u
 /**
  * @brief Specialization of IsMergable (in front) for Segment
  */
-template<> inline bool IsMergable<_Segment>(
-    const tiny_utf8::string& str, const Style& style, const uint64_t start, const _Segment& cmp) {
+template<> inline bool IsMergable<Segment>(
+    const tiny_utf8::string& str, const Style& style, const uint64_t start, const Segment& cmp) {
     bool is_consective = cmp._start == start + str.length();
     bool is_same_style = cmp._style == style;
     bool is_empty      = cmp._str.empty();
@@ -58,8 +57,8 @@ inline bool IsMergable(const T& cmp, const tiny_utf8::string& str, const Style& 
 /**
  * @brief Specialization of IsMergable (behind) for Segment
  */
-template<> inline bool IsMergable<_Segment>(
-    const _Segment& cmp, const tiny_utf8::string& str, const Style& style, const uint64_t start) {
+template<> inline bool IsMergable<Segment>(
+    const Segment& cmp, const tiny_utf8::string& str, const Style& style, const uint64_t start) {
     bool is_consective = start == cmp._start + cmp._str.length();
     bool is_same_style = style == cmp._style;
     bool is_empty      = str.empty();
@@ -91,7 +90,7 @@ template<typename T> inline bool IsMergable(const T& first, const T& second) {
 /**
  * @brief Specialization of IsMergable (Segments) for Segment
  */
-template<> inline bool IsMergable<_Segment>(const _Segment& first, const _Segment& second) {
+template<> inline bool IsMergable<Segment>(const Segment& first, const Segment& second) {
     bool is_consecutive = second._start == first._start + first._str.length();
     bool is_same_style  = first._style == second._style;
     bool is_empty       = second._str.empty();
@@ -122,7 +121,7 @@ template<typename T> inline bool IsInSegment(std::size_t index, const T& segment
 /**
  * @brief Specialization of IsInSegment for Segment
  */
-template<> inline bool IsInSegment<_Segment>(std::size_t index, const _Segment& segment) {
+template<> inline bool IsInSegment<Segment>(std::size_t index, const Segment& segment) {
     bool is_after_start = segment._start <= index;
     bool is_before_end  = index < segment._start + segment._str.length();
 
@@ -152,7 +151,7 @@ template<typename T> inline bool IsRangeInSegment(std::size_t start, std::size_t
 /**
  * @brief Specialization of IsRangeInSegment for Segment
  */
-template<> inline bool IsRangeInSegment<_Segment>(std::size_t start, std::size_t end, const _Segment& seg) {
+template<> inline bool IsRangeInSegment<Segment>(std::size_t start, std::size_t end, const Segment& seg) {
     if(start > end) {
         std::swap(start, end);
     }
@@ -177,14 +176,14 @@ template<> inline bool IsRangeInSegment<_SegmentPtr>(std::size_t start, std::siz
  * @brief Helper that creates a unique_ptr to a Segment with the parameters
  */
 inline _SegmentPtr CreateSegment(const tiny_utf8::string& str, const Style& style, uint64_t start) {
-    return std::make_unique<_Segment>(str, style, start);
+    return std::make_unique<Segment>(str, style, start);
 }
 
 template<typename T> inline std::size_t GetSegmentEnd(const T& seg) {
     throw std::runtime_error("Unsupported Type! << GetSegmentEnd()");
 }
 
-template<> inline std::size_t GetSegmentEnd<_Segment>(const _Segment& seg) {
+template<> inline std::size_t GetSegmentEnd<Segment>(const Segment& seg) {
     bool longer_than_zero = seg._str.length() > 0;
     return seg._start + seg._str.length() - longer_than_zero;
 }
@@ -212,7 +211,7 @@ template<typename T> inline _SegmentPtr SplitSegment(T& seg, std::size_t index, 
 /**
  * @brief SpecialiZation of SplitSegment for Segment
  */
-template<> inline _SegmentPtr SplitSegment<_Segment>(_Segment& seg, std::size_t index, std::size_t erase_len) {
+template<> inline _SegmentPtr SplitSegment<Segment>(Segment& seg, std::size_t index, std::size_t erase_len) {
 #ifndef LIBTESIX_NO_SAFETY
     if(index > seg._str.length()) {
         throw std::range_error("Index is out of Bounds! << SplitSegment()");
@@ -277,7 +276,7 @@ template<typename T> inline void SegmentErase(T& seg, std::size_t index = 0, std
 /**
  * @brief Specialization of SegmentErase for Segment
  */
-template<> inline void SegmentErase<_Segment>(_Segment& seg, std::size_t index, std::size_t len) {
+template<> inline void SegmentErase<Segment>(Segment& seg, std::size_t index, std::size_t len) {
 #ifndef LIBTESIX_NO_SAFETY
     if(index >= seg._str.length()) {
         throw std::range_error("Index is out of bounds! << SegmentErase()");
@@ -326,8 +325,8 @@ template<typename T> inline void SegmentReplaceInplace(
 /**
  * @brief Specialization of SegmentReplaceInplace for Segment
  */
-template<> inline void SegmentReplaceInplace<_Segment>(
-    _Segment& seg, const tiny_utf8::string& str, std::size_t index, std::size_t len) {
+template<> inline void SegmentReplaceInplace<Segment>(
+    Segment& seg, const tiny_utf8::string& str, std::size_t index, std::size_t len) {
 #ifndef LIBTESIX_NO_SAFETY
     if(index >= seg._str.length()) {
         throw std::runtime_error("Index is out of bounds! <<  SegmentReplaceInplace()");
@@ -357,6 +356,48 @@ template<> inline void SegmentReplaceInplace<_SegmentPtr>(
     for(uint64_t i = 0; i < len; i++) {
         seg->_str[i + index] = str[i];
     }
+}
+
+/**
+ * @brief Gets the character at the index within the segment
+ * @param seg The segment
+ * @param index The index(l)
+ * @return The character at index
+ */
+template<typename T> inline StyledChar SegmentCharAt(const T& seg, std::size_t index) {
+    throw std::runtime_error("Unsupported Type! << CharAt()");
+}
+
+/**
+ * @brief Specialization of CharAt for Segment
+ */
+template<> inline StyledChar SegmentCharAt<Segment>(const Segment& seg, std::size_t index) {
+#ifndef LIBTESIX_NO_SAFETY
+    if(index >= seg._str.length()) {
+        throw std::runtime_error(
+            "Index is out of bounds of Segment! May or may not be void in string context. << CharAt()");
+    }
+#endif
+
+    return StyledChar(seg._str[index], seg._style);
+}
+
+/**
+ * @brief Specialization of CharAt for std::unique_ptr<Segment>
+ */
+template<> inline StyledChar SegmentCharAt<_SegmentPtr>(const _SegmentPtr& seg, std::size_t index) {
+#ifndef LIBTESIX_NO_SAFETY
+    if(index >= seg->_str.length()) {
+        throw std::runtime_error(
+            "Index is out of bounds of Segment! May or may not be void in string context. << CharAt()");
+    }
+#endif
+
+    return StyledChar(seg->_str[index], seg->_style);
+}
+
+bool IsNull(const StyledChar& character) {
+    return character._char == 0;
 }
 
 } // namespace LibTesix

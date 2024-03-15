@@ -57,51 +57,51 @@ bool ColorPair::operator==(const ColorPair& other) const {
 Style::Style(const tiny_utf8::string& name) : _name(name) {
 }
 
-Style* Style::Bold(bool val) {
+Style& Style::Bold(bool val) {
     if(_modifiers[FAINT] && val) _modifiers[FAINT] = false;
     _modifiers[BOLD] = val;
-    return this;
+    return *this;
 }
 
-Style* Style::Faint(bool val) {
+Style& Style::Faint(bool val) {
     if(_modifiers[BOLD] && val) _modifiers[BOLD] = false;
     _modifiers[FAINT] = val;
-    return this;
+    return *this;
 }
 
-Style* Style::Blinking(bool val) {
+Style& Style::Blinking(bool val) {
     _modifiers[BLINKING] = val;
-    return this;
+    return *this;
 }
 
-Style* Style::Reverse(bool val) {
+Style& Style::Reverse(bool val) {
     _modifiers[REVERSE] = val;
-    return this;
+    return *this;
 }
 
-Style* Style::Underlined(bool val) {
+Style& Style::Underlined(bool val) {
     _modifiers[UNDERLINED] = val;
-    return this;
+    return *this;
 }
 
-Style* Style::Italic(bool val) {
+Style& Style::Italic(bool val) {
     _modifiers[ITALIC] = val;
-    return this;
+    return *this;
 }
 
-Style* Style::BG(LibTesix::Color val) {
+Style& Style::BG(LibTesix::Color val) {
     _col._bg = val;
-    return this;
+    return *this;
 }
 
-Style* Style::FG(LibTesix::Color val) {
+Style& Style::FG(LibTesix::Color val) {
     _col._fg = val;
-    return this;
+    return *this;
 }
 
-Style* Style::Color(ColorPair val) {
+Style& Style::Color(ColorPair val) {
     _col = val;
-    return this;
+    return *this;
 }
 
 bool Style::GetMod(States state) const {
