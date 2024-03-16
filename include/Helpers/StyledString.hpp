@@ -1,10 +1,8 @@
 #pragma once
 
-#include "../NonContStyledString.hpp"
+#include "../StyledString.hpp"
 
 namespace LibTesix {
-
-using _SegmentPtr = std::unique_ptr<Segment>;
 
 /**
  * @brief Checks if the Segment represented by str, style and start can be merged to the start of cmp
@@ -110,32 +108,31 @@ template<> inline bool IsMergable<_SegmentPtr>(const _SegmentPtr& first, const _
 }
 
 /**
- * @brief Checks if the index(g) is within the bounds of the segment
- * @param index The index(g) to check
- * @param segment The segment to check
+ * @brief Helper that creates a unique_ptr to a Segment with the parameters
  */
-template<typename T> inline bool IsInSegment(std::size_t index, const T& segment) {
-    throw std::runtime_error("Unsupported Type! << IsInSegment()");
+inline _SegmentPtr CreateSegment(const tiny_utf8::string& str, const Style& style, uint64_t start) {
+    return std::make_unique<Segment>(str, style, start);
 }
 
 /**
- * @brief Specialization of IsInSegment for Segment
+ * @brief Helper that creates a unique_ptr to a Segment with the parameters
  */
-template<> inline bool IsInSegment<Segment>(std::size_t index, const Segment& segment) {
-    bool is_after_start = segment._start <= index;
-    bool is_before_end  = index < segment._start + segment._str.length();
-
-    return is_after_start && is_before_end;
+inline _SegmentPtr CreateSegment(const StyledChar& character, uint64_t start) {
+    return std::make_unique<Segment>(tiny_utf8::string(character._char), character._style, start);
 }
 
-/**
- * @brief Specialization of IsInSegment for std::unique_ptr<Segment>
- */
-template<> inline bool IsInSegment<_SegmentPtr>(std::size_t index, const _SegmentPtr& segment) {
-    bool is_after_start = segment->_start <= index;
-    bool is_before_end  = index < segment->_start + segment->_str.length();
+template<typename T> inline std::size_t GetSegmentEnd(const T& seg) {
+    throw std::runtime_error("Unsupported Type! << GetSegmentEnd()");
+}
 
-    return is_after_start && is_before_end;
+template<> inline std::size_t GetSegmentEnd<Segment>(const Segment& seg) {
+    bool longer_than_zero = seg._str.length() > 0;
+    return seg._start + seg._str.length() - longer_than_zero;
+}
+
+template<> inline std::size_t GetSegmentEnd<_SegmentPtr>(const _SegmentPtr& seg) {
+    bool longer_than_zero = seg->_str.length() > 0;
+    return seg->_start + seg->_str.length() - longer_than_zero;
 }
 
 /**
@@ -170,27 +167,6 @@ template<> inline bool IsRangeInSegment<_SegmentPtr>(std::size_t start, std::siz
     bool before_end  = end < seg->_start + seg->_str.length();
 
     return after_start && before_end;
-}
-
-/**
- * @brief Helper that creates a unique_ptr to a Segment with the parameters
- */
-inline _SegmentPtr CreateSegment(const tiny_utf8::string& str, const Style& style, uint64_t start) {
-    return std::make_unique<Segment>(str, style, start);
-}
-
-template<typename T> inline std::size_t GetSegmentEnd(const T& seg) {
-    throw std::runtime_error("Unsupported Type! << GetSegmentEnd()");
-}
-
-template<> inline std::size_t GetSegmentEnd<Segment>(const Segment& seg) {
-    bool longer_than_zero = seg._str.length() > 0;
-    return seg._start + seg._str.length() - longer_than_zero;
-}
-
-template<> inline std::size_t GetSegmentEnd<_SegmentPtr>(const _SegmentPtr& seg) {
-    bool longer_than_zero = seg->_str.length() > 0;
-    return seg->_start + seg->_str.length() - longer_than_zero;
 }
 
 /**
@@ -356,6 +332,35 @@ template<> inline void SegmentReplaceInplace<_SegmentPtr>(
     for(uint64_t i = 0; i < len; i++) {
         seg->_str[i + index] = str[i];
     }
+}
+
+/**
+ * @brief Checks if the index(g) is within the bounds of the segment
+ * @param index The index(g) to check
+ * @param segment The segment to check
+ */
+template<typename T> inline bool IsInSegment(std::size_t index, const T& segment) {
+    throw std::runtime_error("Unsupported Type! << IsInSegment()");
+}
+
+/**
+ * @brief Specialization of IsInSegment for Segment
+ */
+template<> inline bool IsInSegment<Segment>(std::size_t index, const Segment& segment) {
+    bool is_after_start = segment._start <= index;
+    bool is_before_end  = index < segment._start + segment._str.length();
+
+    return is_after_start && is_before_end;
+}
+
+/**
+ * @brief Specialization of IsInSegment for std::unique_ptr<Segment>
+ */
+template<> inline bool IsInSegment<_SegmentPtr>(std::size_t index, const _SegmentPtr& segment) {
+    bool is_after_start = segment->_start <= index;
+    bool is_before_end  = index < segment->_start + segment->_str.length();
+
+    return is_after_start && is_before_end;
 }
 
 /**

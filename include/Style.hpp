@@ -10,85 +10,159 @@
 
 namespace LibTesix {
 struct Color {
-    Color(uint64_t r, uint64_t g, uint64_t b);
-    Color();
+    Color(uint64_t r, uint64_t g, uint64_t b) {
+        _r = r;
+        _g = g;
+        _b = b;
+    }
 
-    bool operator==(const Color& other) const;
+    Color() {
+        _r = 0;
+        _g = 0;
+        _b = 0;
+    }
 
-    uint64_t r;
-    uint64_t g;
-    uint64_t b;
+    uint8_t _r;
+    uint8_t _g;
+    uint8_t _b;
+
+    bool operator==(const Color& other) const {
+        return _r == other._r && _g == other._g && _b == other._b;
+    }
 };
 
-const Color STANDARD_FG(255, 255, 255);
-const Color STANDARD_BG(0, 0, 0);
+const Color DEFAULT_FG(255, 255, 255);
+const Color DEFAULT_BG(0, 0, 0);
 
 struct ColorPair {
-    ColorPair(Color fg, Color bg);
-    ColorPair();
+    ColorPair(Color fg, Color bg) {
+        _fg = fg;
+        _bg = bg;
+    }
 
-    // foreground
+    ColorPair() = default;
+
     Color _fg;
-    // background
     Color _bg;
 
-    bool operator==(const ColorPair& other) const;
+    bool operator==(const ColorPair& other) const {
+        return _fg == other._fg && _bg == other._bg;
+    }
 };
 
-const ColorPair STANDARD_COLORPAIR(STANDARD_FG, STANDARD_BG);
+const ColorPair DEFAULT_COLOR(DEFAULT_FG, DEFAULT_BG);
+
+enum Modifiers { BOLD, FAINT, BLINKING, REVERSE, UNDERLINED, ITALIC, MODIFIERS_COUNT };
 
 class Style {
     friend class StyleAllocator;
 
-  public:
-    // The indicies of _modifiers in LibTesix::Style::bool_state
-    enum States { BOLD, FAINT, BLINKING, REVERSE, UNDERLINED, ITALIC, STATES_COUNT };
-
-    // Setters for _modifiers
-    Style& Bold(bool val);
-    Style& Faint(bool val);
-    Style& Blinking(bool val);
-    Style& Reverse(bool val);
-    Style& Underlined(bool val);
-    Style& Italic(bool val);
-    Style& BG(Color val);
-    Style& FG(Color val);
-    Style& Color(ColorPair val);
-
-    bool             GetMod(States state) const;
-    const ColorPair& GetColor() const;
-
-    // Returns the escape code sequence used in order to change from the supplied teminal state to this style
-    std::string GetEscapeCode(const Style& state) const;
-
-    void Reset();
-
-    bool operator==(const Style& other) const;
-
   private:
-    Style(const tiny_utf8::string& name);
-
     //  States of modifiers eg. bold, italic or blinking text
-    //  these modifiers are stored in this vector at the values in the States enum
-    std::bitset<STATES_COUNT> _modifiers;
+    //  these modifiers are stored in this vector at the values in the Modifiers enum
+    std::bitset<Modifiers::MODIFIERS_COUNT> _modifiers;
 
     // The name of the Style used to identify styles when exporting or importing from json
     const tiny_utf8::string _name;
 
     // The color of the Style
-    ColorPair _col;
+    ColorPair _color;
+
+  public:
+    // Setters for _modifiers
+    Style& Bold(bool val) {
+        if(_modifiers[Modifiers::FAINT] && val) _modifiers[Modifiers::FAINT] = false;
+        _modifiers[Modifiers::BOLD] = val;
+        return *this;
+    }
+
+    Style& Faint(bool val) {
+        if(_modifiers[Modifiers::BOLD] && val) _modifiers[Modifiers::BOLD] = false;
+        _modifiers[Modifiers::FAINT] = val;
+        return *this;
+    }
+
+    Style& Blinking(bool val) {
+        _modifiers[Modifiers::BLINKING] = val;
+        return *this;
+    }
+
+    Style& Reverse(bool val) {
+        _modifiers[Modifiers::REVERSE] = val;
+        return *this;
+    }
+
+    Style& Underlined(bool val) {
+        _modifiers[Modifiers::UNDERLINED] = val;
+        return *this;
+    }
+
+    Style& Italic(bool val) {
+        _modifiers[Modifiers::ITALIC] = val;
+        return *this;
+    }
+
+    Style& BG(Color val) {
+        _color._bg = val;
+        return *this;
+    }
+
+    Style& FG(Color val) {
+        _color._fg = val;
+        return *this;
+    }
+
+    Style& Color(ColorPair val) {
+        _color = val;
+        return *this;
+    }
+
+    bool GetMod(Modifiers state) const {
+        return _modifiers[state];
+    }
+
+    const ColorPair& GetColor() const {
+        return _color;
+    }
+
+    void Reset() {
+        _modifiers.reset();
+        _color = DEFAULT_COLOR;
+    }
+
+    bool operator==(const Style& other) const {
+        return this == &other || _modifiers == other._modifiers && _color == other._color && _name == other._name;
+    }
+
+  private:
+    Style(const tiny_utf8::string& name) : _name(name) {
+    }
 };
 
 class StyleAllocator {
   public:
-    StyleAllocator();
-
-    Style& operator[](const tiny_utf8::string& name);
-
-    Style& Add(const tiny_utf8::string& name);
+    StyleAllocator() = default;
 
   private:
     std::map<tiny_utf8::string, std::unique_ptr<Style>> _styles;
+
+  public:
+    Style& operator[](const tiny_utf8::string& name) {
+        if(_styles.contains(name)) {
+            return *_styles[name].get();
+        }
+
+        throw std::runtime_error("Unkown style! << StyleAllocator::operator[]");
+    }
+
+    Style& Add(const tiny_utf8::string& name) {
+        if(_styles.contains(name)) {
+            return *_styles[name].get();
+        } else {
+            _styles[name] = std::make_unique<Style>(Style(name));
+            return *_styles[name].get();
+        }
+    }
 };
 
 } // namespace LibTesix
