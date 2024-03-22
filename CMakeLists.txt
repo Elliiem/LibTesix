@@ -7,13 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_BUILD_TYPE Debug)
 
-option(COMPILE_EXAMPLES "Should the examples be compiled" ON)
-
 add_definitions("-DNDEBUG")
 #add_definitions("-DLIBTESIX_NO_SAFETY")
 
 include_directories("${CMAKE_SOURCE_DIR}/include")
 
-if(COMPILE_EXAMPLES)
-    add_subdirectory(Examples)
-endif()
+add_subdirectory(Examples)

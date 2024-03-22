@@ -1,0 +1,36 @@
+// Window handling and drawing
+
+requirements:
+    general:
+        efficiency ++
+        scalability -
+    features:
+        draw windows +
+        erase window + (redraw below)
+        move windows + (and clean up)
+
+    ideas:
+        variable window shapes
+        gpu acceleration ??
+            shaders
+        filters
+
+
+implementation:
+    class Screen => stores current screen data, and chunks
+
+    Chunks => need to be rescalble on demand / grid needs to be rescalable
+
+    Window {
+        x,
+        y,
+        width,
+        height,
+
+        content
+
+        overlays ? / border ?
+    } => rescalable?
+
+    Drawer only draws data to screen (exept cutting of strings that are outside the screen, and prevents overwriting uneccesarily ?) => draw queue ?
+

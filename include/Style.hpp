@@ -10,21 +10,17 @@
 
 namespace LibTesix {
 struct Color {
-    Color(uint64_t r, uint64_t g, uint64_t b) {
+    Color(uint8_t r, uint8_t g, uint8_t b) {
         _r = r;
         _g = g;
         _b = b;
     }
 
-    Color() {
-        _r = 0;
-        _g = 0;
-        _b = 0;
-    }
+    Color() = default;
 
-    uint8_t _r;
-    uint8_t _g;
-    uint8_t _b;
+    uint8_t _r = 0;
+    uint8_t _g = 0;
+    uint8_t _b = 0;
 
     bool operator==(const Color& other) const {
         return _r == other._r && _g == other._g && _b == other._b;
